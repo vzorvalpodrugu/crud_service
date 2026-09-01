@@ -1,0 +1,10 @@
+package: api
+generate:
+  echo-server: true                 # генерировать для фреймворка Echo
+  strict-server: true               # strict mode — об этом ниже
+  embedded-spec: true               # встроить спеку в бинарник (для валидации)
+output: api/server.gen.go
+output-options:
+  skip-prune: true
+import-mapping:
+  openapi.yaml: github.com/vzorvalpodrugu/crud_service/api  # где искать типы

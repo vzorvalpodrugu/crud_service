@@ -1,0 +1,360 @@
+openapi: "3.0.3"
+
+info:
+  title: CRUD Service API      # название API
+  version: "1.0.0"             # версия API (не путать с версией OpenAPI выше)
+  description: "Users and Comments CRUD service"
+
+servers:
+  - url: http://localhost:8080 # базовый URL — все пути будут относительно него
+
+# ---------------------------------------------------------
+# PATHS — описание всех эндпоинтов
+# ---------------------------------------------------------
+paths:
+
+  # ───── USERS ─────────────────────────────────────────
+
+  /users:
+    post:
+      summary: Создать пользователя
+      operationId: createUser       # уникальный ID операции — из него генерируется имя метода
+      tags: [users]                 # группировка в документации
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'  # ссылка на схему ниже
+      responses:
+        "201":
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+    get:
+      summary: Получить всех пользователей
+      operationId: listUsers
+      tags: [users]
+      responses:
+        "200":
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /users/{id}:
+    parameters:                     # параметры общие для всех методов этого пути
+      - name: id
+        in: path                    # параметр в URL: /users/123
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Получить пользователя по ID
+      operationId: getUserById
+      tags: [users]
+      responses:
+        "200":
+          description: Пользователь найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Обновить пользователя
+      operationId: updateUser
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        "200":
+          description: Пользователь обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Удалить пользователя
+      operationId: deleteUser
+      tags: [users]
+      responses:
+        "204":
+          description: Пользователь удалён (нет тела ответа)
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /users/{id}/comments:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Получить все комментарии пользователя
+      operationId: getUserComments  # вот наш специальный эндпоинт one-to-many
+      tags: [users]
+      responses:
+        "200":
+          description: Комментарии пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentResponse'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  # ───── COMMENTS ──────────────────────────────────────
+
+  /comments:
+    post:
+      summary: Создать комментарий
+      operationId: createComment
+      tags: [comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+      responses:
+        "201":
+          description: Комментарий создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+    get:
+      summary: Получить все комментарии
+      operationId: listComments
+      tags: [comments]
+      responses:
+        "200":
+          description: Список комментариев
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentResponse'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /comments/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Получить комментарий по ID
+      operationId: getCommentById
+      tags: [comments]
+      responses:
+        "200":
+          description: Комментарий найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Обновить комментарий
+      operationId: updateComment
+      tags: [comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommentRequest'
+      responses:
+        "200":
+          description: Комментарий обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Удалить комментарий
+      operationId: deleteComment
+      tags: [comments]
+      responses:
+        "204":
+          description: Комментарий удалён
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+# ---------------------------------------------------------
+# COMPONENTS — переиспользуемые схемы и ответы
+# ---------------------------------------------------------
+components:
+
+  schemas:
+    # ── User schemas ──────────────────────────────────
+    CreateUserRequest:
+      type: object
+      required: [name, email]       # обязательные поля
+      properties:
+        name:
+          type: string
+          example: "Ivan Petrov"
+        email:
+          type: string
+          format: email
+          example: "ivan@example.com"
+
+    UpdateUserRequest:
+      type: object
+      properties:                   # все поля опциональны — обновляем только то что пришло
+        name:
+          type: string
+          example: "Ivan Petrov"
+        email:
+          type: string
+          format: email
+          example: "ivan@example.com"
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # ── Comment schemas ───────────────────────────────
+    CreateCommentRequest:
+      type: object
+      required: [user_id, content]
+      properties:
+        user_id:
+          type: string
+          format: uuid              # привязка комментария к пользователю
+        content:
+          type: string
+          example: "Отличный сервис!"
+
+    UpdateCommentRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          example: "Обновлённый комментарий"
+
+    CommentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # ── Error schema ──────────────────────────────────
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "resource not found"
+
+  # переиспользуемые ответы — не повторяем одно и то же в каждом эндпоинте
+  responses:
+    BadRequest:
+      description: Неверный запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
