@@ -15,11 +15,12 @@ import (
 	"path"
 	"strings"
 
+	externalRef0 "crud_service/api"
+
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
-	externalRef0 "github.com/vzorvalpodrugu/crud_service/api"
 )
 
 // ServerInterface represents all server handlers.
@@ -33,7 +34,7 @@ type ServerInterface interface {
 	// DeleteComment Удалить комментарий
 	// (DELETE /comments/{id})
 	DeleteComment(ctx echo.Context, id openapi_types.UUID) error
-	// GetCommentById Получить комментарий по Id
+	// GetCommentById Получить комментарий по ID
 	// (GET /comments/{id})
 	GetCommentById(ctx echo.Context, id openapi_types.UUID) error
 	// UpdateComment Обновить комментарий
@@ -48,7 +49,7 @@ type ServerInterface interface {
 	// DeleteUser Удалить пользователя
 	// (DELETE /users/{id})
 	DeleteUser(ctx echo.Context, id openapi_types.UUID) error
-	// GetUserById Получить пользователя по Id
+	// GetUserById Получить пользователя по ID
 	// (GET /users/{id})
 	GetUserById(ctx echo.Context, id openapi_types.UUID) error
 	// UpdateUser Обновить пользователя
@@ -842,7 +843,7 @@ type StrictServerInterface interface {
 	// DeleteComment Удалить комментарий
 	// (DELETE /comments/{id})
 	DeleteComment(ctx context.Context, request DeleteCommentRequestObject) (DeleteCommentResponseObject, error)
-	// GetCommentById Получить комментарий по Id
+	// GetCommentById Получить комментарий по ID
 	// (GET /comments/{id})
 	GetCommentById(ctx context.Context, request GetCommentByIdRequestObject) (GetCommentByIdResponseObject, error)
 	// UpdateComment Обновить комментарий
@@ -857,7 +858,7 @@ type StrictServerInterface interface {
 	// DeleteUser Удалить пользователя
 	// (DELETE /users/{id})
 	DeleteUser(ctx context.Context, request DeleteUserRequestObject) (DeleteUserResponseObject, error)
-	// GetUserById Получить пользователя по Id
+	// GetUserById Получить пользователя по ID
 	// (GET /users/{id})
 	GetUserById(ctx context.Context, request GetUserByIdRequestObject) (GetUserByIdResponseObject, error)
 	// UpdateUser Обновить пользователя

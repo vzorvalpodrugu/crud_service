@@ -3,14 +3,14 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"time"
 
-	"crud-service/internal/config"
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"crud_service/internal/config"
 )
 
 func NewPool(ctx context.Context, cfg config.DBConfig) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(ctx, cfg)
+	pool, err := pgxpool.New(ctx, cfg.DSN())
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create connection pool: %w", err)
 	}

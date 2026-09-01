@@ -6,37 +6,38 @@ import (
 )
 
 type Config struct {
-	app AppConfig
-	db  DBConfig
+	App AppConfig
+	Db  DBConfig
 }
 
 type AppConfig struct {
-	port string
+	Port string
 	host string
 }
 
 type DBConfig struct {
-	dbname   string
-	host     string
-	port     string
-	user     string
-	password string
+	Dbname   string
+	Host     string
+	Port     string
+	User     string
+	Password string
 }
 
 // DSN
 func (db DBConfig) DSN() string {
 	return fmt.Sprintf(
-		"dbname=%s host=%s post=%s user=%s password=%s",
+		"dbname=%s host=%s port=%s user=%s password=%s sslmode=disable",
+		db.Dbname, db.Host, db.Port, db.User, db.Password,
 	)
 }
 
 func Load() (*Config, error) {
 	cfg := &Config{
-		app: AppConfig{
-			os.Getenv("POSTGRES_PORT"),
+		App: AppConfig{
+			os.Getenv("APP_PORT"),
 			os.Getenv("POSTGRES_HOST"),
 		},
-		db: DBConfig{
+		Db: DBConfig{
 			os.Getenv("POSTGRES_DB"),
 			os.Getenv("POSTGRES_HOST"),
 			os.Getenv("POSTGRES_PORT"),

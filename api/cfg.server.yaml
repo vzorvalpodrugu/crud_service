@@ -7,4 +7,4 @@ output: api/server.gen.go
 output-options:
   skip-prune: true
 import-mapping:
-  openapi.yaml: github.com/vzorvalpodrugu/crud_service/api  # где искать типы
+  openapi.yaml: crud_service/api  # где искать типы
