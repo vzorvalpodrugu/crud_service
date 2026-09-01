@@ -3,12 +3,10 @@ package repository
 import (
 	"context"
 	"errors"
-	"crud_service/internal/config"
-	"crud_service/internal/db"
 	"crud_service/internal/domain"
 	"fmt"
 
-	"github.com/jackc/pgx/v5
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -99,7 +97,43 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 	return users, nil
 }
 
-func (r *userRepository) Update(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *userRepository) Update(ctx context.Context, user *domain.User) error {
+	query := `
+		UPDATE users
+		SET Name = $1, Email = $2, Updated_at = %3
+		WHERE Id = $4
+	`
 
+	result, err := r.pool.Exec(ctx, query,
+		user.Name,
+		user.Email,
+		user.Updated_at,
+		user.Id,
+	)
+
+	if err != nil {
+		return fmt.Errorf("userRepository.Update: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("User not found: %w", ErrNotFound)
+	}
+
+	return nil
 }
-func (r *userRepository) Delete(ctx context.Context, id int) error {}
+func (r *userRepository) Delete(ctx context.Context, id int) error {
+	query := `
+		DELETE FROM users WHERE Id = $1
+	`
+
+	result, err := r.pool.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("userRepository.Delete: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("User not found: %w", ErrNotFound)
+	}
+
+	return nil
+}
