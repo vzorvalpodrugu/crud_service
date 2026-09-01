@@ -99,5 +99,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 	return users, nil
 }
 
-func (r *userRepository) Update(ctx context.Context, user *domain.User) (*domain.User, error) {}
-func (r *userRepository) Delete(ctx context.Context, id int) error                            {}
+func (r *userRepository) Update(ctx context.Context, user *domain.User) (*domain.User, error) {
+
+}
+func (r *userRepository) Delete(ctx context.Context, id int) error {}
