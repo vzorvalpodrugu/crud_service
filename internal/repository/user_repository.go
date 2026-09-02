@@ -103,14 +103,13 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 func (r *userRepository) Update(ctx context.Context, user *domain.User) error {
 	query := `
 		UPDATE users
-		SET Name = $1, Email = $2, Updated_at = %3
-		WHERE Id = $4
+		SET Name = $1, Email = $2
+		WHERE Id = $3
 	`
 
 	result, err := r.pool.Exec(ctx, query,
 		user.Name,
 		user.Email,
-		user.Updated_at,
 		user.Id,
 	)
 
