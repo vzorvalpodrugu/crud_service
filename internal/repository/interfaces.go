@@ -25,6 +25,6 @@ type CommentRepository interface {
 	Create(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
 	GetById(ctx context.Context, id int) (*domain.Comment, error)
 	GetAll(ctx context.Context) ([]*domain.Comment, error)
-	Update(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
+	Update(ctx context.Context, comment *domain.Comment) error
 	Delete(ctx context.Context, id int) error
 }
