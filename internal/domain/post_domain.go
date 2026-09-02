@@ -3,10 +3,10 @@ package domain
 import "time"
 
 type Post struct {
-	id         int
-	name       string
-	author_id  int
-	text       string
-	created_at time.Time
-	updated_at time.Time
+	Id         int
+	Name       string
+	Author_id  int
+	Text       string
+	Created_at time.Time
+	Updated_at time.Time
 }

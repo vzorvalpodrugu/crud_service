@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"crud_service/internal/domain"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -30,9 +30,9 @@ func (r *userRepository) Create(ctx context.Context, user *domain.User) (*domain
 	)
 
 	if err != nil {
-		return user, fmt.Errorf("failed UserRepository.Create: %w", err)
+		return nil, fmt.Errorf("failed UserRepository.Create: %w", err)
 	}
-	return user, err
+	return user, nil
 }
 
 func (r *userRepository) GetById(ctx context.Context, id int) (*domain.User, error) {
