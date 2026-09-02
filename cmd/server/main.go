@@ -36,6 +36,39 @@ func main() {
 
 	log.Println("successful connect to database")
 
+	//тест репозиториев
+	//user_repository := repository.NewUserRepository(pool)
+	//post_repository := repository.NewPostRepository(pool)
+	////comment_repository := repository.NewCommentRepository(pool)
+	//
+	//user := &domain.User{
+	//	Name:  "Pavel",
+	//	Email: "Pavel.com",
+	//}
+	////createdUser, err := user_repository.Create(ctx, user)
+	////if err != nil {
+	////	log.Printf("failed to create user: %v", err)
+	////} else {
+	////	log.Printf("user created:\n %+v\n\n", createdUser)
+	////}
+	//user, err = user_repository.GetById(ctx, 1)
+	//if err != nil {
+	//	log.Printf("failed to get user: %v", err)
+	//}
+	//log.Printf("User by id: %v\n\n", user)
+	//
+	//post := &domain.Post{
+	//	Name:      "Mega_post",
+	//	Author_id: 1,
+	//	Text:      "i am pavel hello",
+	//}
+	//
+	//createdPost, err := post_repository.Create(ctx, post)
+	//if err != nil {
+	//	log.Printf("failed to create post: %v", err)
+	//}
+	//log.Printf("post: %v\n\n", createdPost)
+
 	//4 создание echo
 	e := echo.New()
 

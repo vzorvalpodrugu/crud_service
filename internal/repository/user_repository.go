@@ -5,6 +5,7 @@ import (
 	"crud_service/internal/domain"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -32,6 +33,8 @@ func (r *userRepository) Create(ctx context.Context, user *domain.User) (*domain
 	if err != nil {
 		return nil, fmt.Errorf("failed UserRepository.Create: %w", err)
 	}
+
+	log.Println("successful create user")
 	return user, nil
 }
 
