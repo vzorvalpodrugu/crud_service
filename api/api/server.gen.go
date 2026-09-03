@@ -15,12 +15,9 @@ import (
 	"path"
 	"strings"
 
-	externalRef0 "crud_service/api"
-
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // ServerInterface represents all server handlers.
@@ -33,13 +30,28 @@ type ServerInterface interface {
 	CreateComment(ctx echo.Context) error
 	// DeleteComment Удалить комментарий
 	// (DELETE /comments/{id})
-	DeleteComment(ctx echo.Context, id openapi_types.UUID) error
+	DeleteComment(ctx echo.Context, id int) error
 	// GetCommentById Получить комментарий по ID
 	// (GET /comments/{id})
-	GetCommentById(ctx echo.Context, id openapi_types.UUID) error
+	GetCommentById(ctx echo.Context, id int) error
 	// UpdateComment Обновить комментарий
 	// (PUT /comments/{id})
-	UpdateComment(ctx echo.Context, id openapi_types.UUID) error
+	UpdateComment(ctx echo.Context, id int) error
+	// ListPosts Получить все посты
+	// (GET /posts)
+	ListPosts(ctx echo.Context) error
+	// CreatePost Создать пост
+	// (POST /posts)
+	CreatePost(ctx echo.Context) error
+	// DeletePost Удалить пост
+	// (DELETE /posts/{id})
+	DeletePost(ctx echo.Context, id int) error
+	// GetPostById Получить пост по ID
+	// (GET /posts/{id})
+	GetPostById(ctx echo.Context, id int) error
+	// UpdatePost Обновить пост
+	// (PUT /posts/{id})
+	UpdatePost(ctx echo.Context, id int) error
 	// ListUsers Получить всех пользователей
 	// (GET /users)
 	ListUsers(ctx echo.Context) error
@@ -48,16 +60,13 @@ type ServerInterface interface {
 	CreateUser(ctx echo.Context) error
 	// DeleteUser Удалить пользователя
 	// (DELETE /users/{id})
-	DeleteUser(ctx echo.Context, id openapi_types.UUID) error
+	DeleteUser(ctx echo.Context, id int) error
 	// GetUserById Получить пользователя по ID
 	// (GET /users/{id})
-	GetUserById(ctx echo.Context, id openapi_types.UUID) error
+	GetUserById(ctx echo.Context, id int) error
 	// UpdateUser Обновить пользователя
 	// (PUT /users/{id})
-	UpdateUser(ctx echo.Context, id openapi_types.UUID) error
-	// GetUserComments Получить все комментарии пользователя
-	// (GET /users/{id}/comments)
-	GetUserComments(ctx echo.Context, id openapi_types.UUID) error
+	UpdateUser(ctx echo.Context, id int) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -87,9 +96,9 @@ func (w *ServerInterfaceWrapper) CreateComment(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) DeleteComment(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "id" -------------
-	var id openapi_types.UUID
+	var id int
 
-	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
@@ -103,9 +112,9 @@ func (w *ServerInterfaceWrapper) DeleteComment(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) GetCommentById(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "id" -------------
-	var id openapi_types.UUID
+	var id int
 
-	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
@@ -119,15 +128,81 @@ func (w *ServerInterfaceWrapper) GetCommentById(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) UpdateComment(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "id" -------------
-	var id openapi_types.UUID
+	var id int
 
-	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.UpdateComment(ctx, id)
+	return err
+}
+
+// ListPosts converts echo context to params.
+func (w *ServerInterfaceWrapper) ListPosts(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListPosts(ctx)
+	return err
+}
+
+// CreatePost converts echo context to params.
+func (w *ServerInterfaceWrapper) CreatePost(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreatePost(ctx)
+	return err
+}
+
+// DeletePost converts echo context to params.
+func (w *ServerInterfaceWrapper) DeletePost(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeletePost(ctx, id)
+	return err
+}
+
+// GetPostById converts echo context to params.
+func (w *ServerInterfaceWrapper) GetPostById(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetPostById(ctx, id)
+	return err
+}
+
+// UpdatePost converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdatePost(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdatePost(ctx, id)
 	return err
 }
 
@@ -153,9 +228,9 @@ func (w *ServerInterfaceWrapper) CreateUser(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) DeleteUser(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "id" -------------
-	var id openapi_types.UUID
+	var id int
 
-	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
@@ -169,9 +244,9 @@ func (w *ServerInterfaceWrapper) DeleteUser(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) GetUserById(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "id" -------------
-	var id openapi_types.UUID
+	var id int
 
-	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
@@ -185,31 +260,15 @@ func (w *ServerInterfaceWrapper) GetUserById(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) UpdateUser(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "id" -------------
-	var id openapi_types.UUID
+	var id int
 
-	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.UpdateUser(ctx, id)
-	return err
-}
-
-// GetUserComments converts echo context to params.
-func (w *ServerInterfaceWrapper) GetUserComments(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "id" -------------
-	var id openapi_types.UUID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetUserComments(ctx, id)
 	return err
 }
 
@@ -265,7 +324,11 @@ func RegisterHandlersWithOptions(router EchoRouter, si ServerInterface, options 
 	router.DELETE(options.BaseURL+"/users/:id", wrapper.DeleteUser, options.OperationMiddlewares["deleteUser"]...)
 	router.GET(options.BaseURL+"/users/:id", wrapper.GetUserById, options.OperationMiddlewares["getUserById"]...)
 	router.PUT(options.BaseURL+"/users/:id", wrapper.UpdateUser, options.OperationMiddlewares["updateUser"]...)
-	router.GET(options.BaseURL+"/users/:id/comments", wrapper.GetUserComments, options.OperationMiddlewares["getUserComments"]...)
+	router.GET(options.BaseURL+"/posts", wrapper.ListPosts, options.OperationMiddlewares["listPosts"]...)
+	router.POST(options.BaseURL+"/posts", wrapper.CreatePost, options.OperationMiddlewares["createPost"]...)
+	router.DELETE(options.BaseURL+"/posts/:id", wrapper.DeletePost, options.OperationMiddlewares["deletePost"]...)
+	router.GET(options.BaseURL+"/posts/:id", wrapper.GetPostById, options.OperationMiddlewares["getPostById"]...)
+	router.PUT(options.BaseURL+"/posts/:id", wrapper.UpdatePost, options.OperationMiddlewares["updatePost"]...)
 	router.GET(options.BaseURL+"/comments", wrapper.ListComments, options.OperationMiddlewares["listComments"]...)
 	router.POST(options.BaseURL+"/comments", wrapper.CreateComment, options.OperationMiddlewares["createComment"]...)
 	router.DELETE(options.BaseURL+"/comments/:id", wrapper.DeleteComment, options.OperationMiddlewares["deleteComment"]...)
@@ -380,7 +443,7 @@ func (response CreateComment500JSONResponse) VisitCreateCommentResponse(w http.R
 }
 
 type DeleteCommentRequestObject struct {
-	Id openapi_types.UUID `json:"id"`
+	Id int `json:"id"`
 }
 
 type DeleteCommentResponseObject interface {
@@ -424,7 +487,7 @@ func (response DeleteComment500JSONResponse) VisitDeleteCommentResponse(w http.R
 }
 
 type GetCommentByIdRequestObject struct {
-	Id openapi_types.UUID `json:"id"`
+	Id int `json:"id"`
 }
 
 type GetCommentByIdResponseObject interface {
@@ -474,7 +537,7 @@ func (response GetCommentById500JSONResponse) VisitGetCommentByIdResponse(w http
 }
 
 type UpdateCommentRequestObject struct {
-	Id   openapi_types.UUID `json:"id"`
+	Id   int `json:"id"`
 	Body *UpdateCommentJSONRequestBody
 }
 
@@ -482,18 +545,12 @@ type UpdateCommentResponseObject interface {
 	VisitUpdateCommentResponse(w http.ResponseWriter) error
 }
 
-type UpdateComment200JSONResponse CommentResponse
+type UpdateComment204Response struct {
+}
 
-func (response UpdateComment200JSONResponse) VisitUpdateCommentResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	_, err := buf.WriteTo(w)
-	return err
+func (response UpdateComment204Response) VisitUpdateCommentResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
 }
 
 type UpdateComment400JSONResponse struct{ BadRequestJSONResponse }
@@ -527,6 +584,258 @@ func (response UpdateComment404JSONResponse) VisitUpdateCommentResponse(w http.R
 type UpdateComment500JSONResponse struct{ InternalErrorJSONResponse }
 
 func (response UpdateComment500JSONResponse) VisitUpdateCommentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPostsRequestObject struct {
+}
+
+type ListPostsResponseObject interface {
+	VisitListPostsResponse(w http.ResponseWriter) error
+}
+
+type ListPosts200JSONResponse []PostResponse
+
+func (response ListPosts200JSONResponse) VisitListPostsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPosts500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response ListPosts500JSONResponse) VisitListPostsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePostRequestObject struct {
+	Body *CreatePostJSONRequestBody
+}
+
+type CreatePostResponseObject interface {
+	VisitCreatePostResponse(w http.ResponseWriter) error
+}
+
+type CreatePost201JSONResponse PostResponse
+
+func (response CreatePost201JSONResponse) VisitCreatePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePost400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreatePost400JSONResponse) VisitCreatePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePost404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response CreatePost404JSONResponse) VisitCreatePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePost500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response CreatePost500JSONResponse) VisitCreatePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeletePostRequestObject struct {
+	Id int `json:"id"`
+}
+
+type DeletePostResponseObject interface {
+	VisitDeletePostResponse(w http.ResponseWriter) error
+}
+
+type DeletePost204Response struct {
+}
+
+func (response DeletePost204Response) VisitDeletePostResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeletePost404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeletePost404JSONResponse) VisitDeletePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeletePost500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response DeletePost500JSONResponse) VisitDeletePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPostByIdRequestObject struct {
+	Id int `json:"id"`
+}
+
+type GetPostByIdResponseObject interface {
+	VisitGetPostByIdResponse(w http.ResponseWriter) error
+}
+
+type GetPostById200JSONResponse PostResponse
+
+func (response GetPostById200JSONResponse) VisitGetPostByIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPostById404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetPostById404JSONResponse) VisitGetPostByIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPostById500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response GetPostById500JSONResponse) VisitGetPostByIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePostRequestObject struct {
+	Id   int `json:"id"`
+	Body *UpdatePostJSONRequestBody
+}
+
+type UpdatePostResponseObject interface {
+	VisitUpdatePostResponse(w http.ResponseWriter) error
+}
+
+type UpdatePost204Response struct {
+}
+
+func (response UpdatePost204Response) VisitUpdatePostResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type UpdatePost400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UpdatePost400JSONResponse) VisitUpdatePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePost404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdatePost404JSONResponse) VisitUpdatePostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePost500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response UpdatePost500JSONResponse) VisitUpdatePostResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
@@ -624,7 +933,7 @@ func (response CreateUser500JSONResponse) VisitCreateUserResponse(w http.Respons
 }
 
 type DeleteUserRequestObject struct {
-	Id openapi_types.UUID `json:"id"`
+	Id int `json:"id"`
 }
 
 type DeleteUserResponseObject interface {
@@ -668,7 +977,7 @@ func (response DeleteUser500JSONResponse) VisitDeleteUserResponse(w http.Respons
 }
 
 type GetUserByIdRequestObject struct {
-	Id openapi_types.UUID `json:"id"`
+	Id int `json:"id"`
 }
 
 type GetUserByIdResponseObject interface {
@@ -718,7 +1027,7 @@ func (response GetUserById500JSONResponse) VisitGetUserByIdResponse(w http.Respo
 }
 
 type UpdateUserRequestObject struct {
-	Id   openapi_types.UUID `json:"id"`
+	Id   int `json:"id"`
 	Body *UpdateUserJSONRequestBody
 }
 
@@ -726,18 +1035,12 @@ type UpdateUserResponseObject interface {
 	VisitUpdateUserResponse(w http.ResponseWriter) error
 }
 
-type UpdateUser200JSONResponse UserResponse
+type UpdateUser204Response struct {
+}
 
-func (response UpdateUser200JSONResponse) VisitUpdateUserResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	_, err := buf.WriteTo(w)
-	return err
+func (response UpdateUser204Response) VisitUpdateUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
 }
 
 type UpdateUser400JSONResponse struct{ BadRequestJSONResponse }
@@ -782,56 +1085,6 @@ func (response UpdateUser500JSONResponse) VisitUpdateUserResponse(w http.Respons
 	return err
 }
 
-type GetUserCommentsRequestObject struct {
-	Id openapi_types.UUID `json:"id"`
-}
-
-type GetUserCommentsResponseObject interface {
-	VisitGetUserCommentsResponse(w http.ResponseWriter) error
-}
-
-type GetUserComments200JSONResponse []CommentResponse
-
-func (response GetUserComments200JSONResponse) VisitGetUserCommentsResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
-type GetUserComments404JSONResponse struct{ NotFoundJSONResponse }
-
-func (response GetUserComments404JSONResponse) VisitGetUserCommentsResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(404)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
-type GetUserComments500JSONResponse struct{ InternalErrorJSONResponse }
-
-func (response GetUserComments500JSONResponse) VisitGetUserCommentsResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(500)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// ListComments Получить все комментарии
@@ -849,6 +1102,21 @@ type StrictServerInterface interface {
 	// UpdateComment Обновить комментарий
 	// (PUT /comments/{id})
 	UpdateComment(ctx context.Context, request UpdateCommentRequestObject) (UpdateCommentResponseObject, error)
+	// ListPosts Получить все посты
+	// (GET /posts)
+	ListPosts(ctx context.Context, request ListPostsRequestObject) (ListPostsResponseObject, error)
+	// CreatePost Создать пост
+	// (POST /posts)
+	CreatePost(ctx context.Context, request CreatePostRequestObject) (CreatePostResponseObject, error)
+	// DeletePost Удалить пост
+	// (DELETE /posts/{id})
+	DeletePost(ctx context.Context, request DeletePostRequestObject) (DeletePostResponseObject, error)
+	// GetPostById Получить пост по ID
+	// (GET /posts/{id})
+	GetPostById(ctx context.Context, request GetPostByIdRequestObject) (GetPostByIdResponseObject, error)
+	// UpdatePost Обновить пост
+	// (PUT /posts/{id})
+	UpdatePost(ctx context.Context, request UpdatePostRequestObject) (UpdatePostResponseObject, error)
 	// ListUsers Получить всех пользователей
 	// (GET /users)
 	ListUsers(ctx context.Context, request ListUsersRequestObject) (ListUsersResponseObject, error)
@@ -864,9 +1132,6 @@ type StrictServerInterface interface {
 	// UpdateUser Обновить пользователя
 	// (PUT /users/{id})
 	UpdateUser(ctx context.Context, request UpdateUserRequestObject) (UpdateUserResponseObject, error)
-	// GetUserComments Получить все комментарии пользователя
-	// (GET /users/{id}/comments)
-	GetUserComments(ctx context.Context, request GetUserCommentsRequestObject) (GetUserCommentsResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx echo.Context, request any) (any, error)
@@ -944,7 +1209,7 @@ func (sh *strictHandler) CreateComment(ctx echo.Context) error {
 }
 
 // DeleteComment operation middleware
-func (sh *strictHandler) DeleteComment(ctx echo.Context, id openapi_types.UUID) error {
+func (sh *strictHandler) DeleteComment(ctx echo.Context, id int) error {
 	var request DeleteCommentRequestObject
 
 	request.Id = id
@@ -969,7 +1234,7 @@ func (sh *strictHandler) DeleteComment(ctx echo.Context, id openapi_types.UUID) 
 }
 
 // GetCommentById operation middleware
-func (sh *strictHandler) GetCommentById(ctx echo.Context, id openapi_types.UUID) error {
+func (sh *strictHandler) GetCommentById(ctx echo.Context, id int) error {
 	var request GetCommentByIdRequestObject
 
 	request.Id = id
@@ -994,7 +1259,7 @@ func (sh *strictHandler) GetCommentById(ctx echo.Context, id openapi_types.UUID)
 }
 
 // UpdateComment operation middleware
-func (sh *strictHandler) UpdateComment(ctx echo.Context, id openapi_types.UUID) error {
+func (sh *strictHandler) UpdateComment(ctx echo.Context, id int) error {
 	var request UpdateCommentRequestObject
 
 	request.Id = id
@@ -1028,6 +1293,159 @@ func (sh *strictHandler) UpdateComment(ctx echo.Context, id openapi_types.UUID) 
 		return err
 	} else if validResponse, ok := response.(UpdateCommentResponseObject); ok {
 		return validResponse.VisitUpdateCommentResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// ListPosts operation middleware
+func (sh *strictHandler) ListPosts(ctx echo.Context) error {
+	var request ListPostsRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ListPosts(ctx.Request().Context(), request.(ListPostsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListPosts")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(ListPostsResponseObject); ok {
+		return validResponse.VisitListPostsResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// CreatePost operation middleware
+func (sh *strictHandler) CreatePost(ctx echo.Context) error {
+	var request CreatePostRequestObject
+
+	var body CreatePostJSONRequestBody
+	var err error
+	if binder, ok := ctx.Echo().Binder.(*echo.DefaultBinder); ok {
+		// Bind only the request body, so that path and query parameters
+		// are not also bound into the body struct.
+		err = binder.BindBody(ctx, &body)
+	} else {
+		// A custom binder is installed on the Echo instance; defer to it
+		// entirely, since echo.Binder does not expose body-only binding.
+		err = ctx.Bind(&body)
+	}
+	if err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CreatePost(ctx.Request().Context(), request.(CreatePostRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreatePost")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(CreatePostResponseObject); ok {
+		return validResponse.VisitCreatePostResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeletePost operation middleware
+func (sh *strictHandler) DeletePost(ctx echo.Context, id int) error {
+	var request DeletePostRequestObject
+
+	request.Id = id
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeletePost(ctx.Request().Context(), request.(DeletePostRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeletePost")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeletePostResponseObject); ok {
+		return validResponse.VisitDeletePostResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetPostById operation middleware
+func (sh *strictHandler) GetPostById(ctx echo.Context, id int) error {
+	var request GetPostByIdRequestObject
+
+	request.Id = id
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPostById(ctx.Request().Context(), request.(GetPostByIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPostById")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetPostByIdResponseObject); ok {
+		return validResponse.VisitGetPostByIdResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// UpdatePost operation middleware
+func (sh *strictHandler) UpdatePost(ctx echo.Context, id int) error {
+	var request UpdatePostRequestObject
+
+	request.Id = id
+
+	var body UpdatePostJSONRequestBody
+	var err error
+	if binder, ok := ctx.Echo().Binder.(*echo.DefaultBinder); ok {
+		// Bind only the request body, so that path and query parameters
+		// are not also bound into the body struct.
+		err = binder.BindBody(ctx, &body)
+	} else {
+		// A custom binder is installed on the Echo instance; defer to it
+		// entirely, since echo.Binder does not expose body-only binding.
+		err = ctx.Bind(&body)
+	}
+	if err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdatePost(ctx.Request().Context(), request.(UpdatePostRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdatePost")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(UpdatePostResponseObject); ok {
+		return validResponse.VisitUpdatePostResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}
@@ -1097,7 +1515,7 @@ func (sh *strictHandler) CreateUser(ctx echo.Context) error {
 }
 
 // DeleteUser operation middleware
-func (sh *strictHandler) DeleteUser(ctx echo.Context, id openapi_types.UUID) error {
+func (sh *strictHandler) DeleteUser(ctx echo.Context, id int) error {
 	var request DeleteUserRequestObject
 
 	request.Id = id
@@ -1122,7 +1540,7 @@ func (sh *strictHandler) DeleteUser(ctx echo.Context, id openapi_types.UUID) err
 }
 
 // GetUserById operation middleware
-func (sh *strictHandler) GetUserById(ctx echo.Context, id openapi_types.UUID) error {
+func (sh *strictHandler) GetUserById(ctx echo.Context, id int) error {
 	var request GetUserByIdRequestObject
 
 	request.Id = id
@@ -1147,7 +1565,7 @@ func (sh *strictHandler) GetUserById(ctx echo.Context, id openapi_types.UUID) er
 }
 
 // UpdateUser operation middleware
-func (sh *strictHandler) UpdateUser(ctx echo.Context, id openapi_types.UUID) error {
+func (sh *strictHandler) UpdateUser(ctx echo.Context, id int) error {
 	var request UpdateUserRequestObject
 
 	request.Id = id
@@ -1187,56 +1605,34 @@ func (sh *strictHandler) UpdateUser(ctx echo.Context, id openapi_types.UUID) err
 	return nil
 }
 
-// GetUserComments operation middleware
-func (sh *strictHandler) GetUserComments(ctx echo.Context, id openapi_types.UUID) error {
-	var request GetUserCommentsRequestObject
-
-	request.Id = id
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetUserComments(ctx.Request().Context(), request.(GetUserCommentsRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetUserComments")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(GetUserCommentsResponseObject); ok {
-		return validResponse.VisitGetUserCommentsResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
-	}
-	return nil
-}
-
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
@@ -1276,12 +1672,6 @@ func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
 		res[pathToFile] = rawSpec
 	}
 
-	for rawPath, rawFunc := range externalRef0.PathToRawSpec(path.Join(path.Dir(pathToFile), "openapi.yaml")) {
-		if _, ok := res[rawPath]; ok {
-			// it is not possible to compare functions in golang, so always overwrite the old value
-		}
-		res[rawPath] = rawFunc
-	}
 	return res
 }
 

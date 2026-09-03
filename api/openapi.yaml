@@ -1,16 +1,13 @@
 openapi: "3.0.3"
 
 info:
-  title: CRUD Service API      # название API
-  version: "1.0.0"             # версия API (не путать с версией OpenAPI выше)
-  description: "Users and Comments CRUD service"
+  title: CRUD Service API
+  version: "1.0.0"
+  description: "Users, Posts and Comments CRUD service"
 
 servers:
-  - url: http://localhost:8080 # базовый URL — все пути будут относительно него
+  - url: http://localhost:8080
 
-# ---------------------------------------------------------
-# PATHS — описание всех эндпоинтов
-# ---------------------------------------------------------
 paths:
 
   # ───── USERS ─────────────────────────────────────────
@@ -18,14 +15,14 @@ paths:
   /users:
     post:
       summary: Создать пользователя
-      operationId: createUser       # уникальный ID операции — из него генерируется имя метода
-      tags: [users]                 # группировка в документации
+      operationId: createUser
+      tags: [users]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'  # ссылка на схему ниже
+              $ref: '#/components/schemas/CreateUserRequest'
       responses:
         "201":
           description: Пользователь создан
@@ -55,13 +52,12 @@ paths:
           $ref: '#/components/responses/InternalError'
 
   /users/{id}:
-    parameters:                     # параметры общие для всех методов этого пути
+    parameters:
       - name: id
-        in: path                    # параметр в URL: /users/123
+        in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          type: integer
 
     get:
       summary: Получить пользователя по ID
@@ -90,12 +86,8 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateUserRequest'
       responses:
-        "200":
+        "204":
           description: Пользователь обновлён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
         "400":
           $ref: '#/components/responses/BadRequest'
         "404":
@@ -109,34 +101,106 @@ paths:
       tags: [users]
       responses:
         "204":
-          description: Пользователь удалён (нет тела ответа)
+          description: Пользователь удалён
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalError'
 
-  /users/{id}/comments:
-    parameters:
-      - name: id
-        in: path
+  # ───── POSTS ─────────────────────────────────────────
+
+  /posts:
+    post:
+      summary: Создать пост
+      operationId: createPost
+      tags: [posts]
+      requestBody:
         required: true
-        schema:
-          type: string
-          format: uuid
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequest'
+      responses:
+        "201":
+          description: Пост создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
 
     get:
-      summary: Получить все комментарии пользователя
-      operationId: getUserComments  # вот наш специальный эндпоинт one-to-many
-      tags: [users]
+      summary: Получить все посты
+      operationId: listPosts
+      tags: [posts]
       responses:
         "200":
-          description: Комментарии пользователя
+          description: Список постов
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CommentResponse'
+                  $ref: '#/components/schemas/PostResponse'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /posts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    get:
+      summary: Получить пост по ID
+      operationId: getPostById
+      tags: [posts]
+      responses:
+        "200":
+          description: Пост найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Обновить пост
+      operationId: updatePost
+      tags: [posts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostRequest'
+      responses:
+        "204":
+          description: Пост обновлён
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Удалить пост
+      operationId: deletePost
+      tags: [posts]
+      responses:
+        "204":
+          description: Пост удалён
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
@@ -191,8 +255,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          type: integer
 
     get:
       summary: Получить комментарий по ID
@@ -221,12 +284,8 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateCommentRequest'
       responses:
-        "200":
+        "204":
           description: Комментарий обновлён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CommentResponse'
         "400":
           $ref: '#/components/responses/BadRequest'
         "404":
@@ -247,15 +306,16 @@ paths:
           $ref: '#/components/responses/InternalError'
 
 # ---------------------------------------------------------
-# COMPONENTS — переиспользуемые схемы и ответы
+# COMPONENTS
 # ---------------------------------------------------------
 components:
 
   schemas:
-    # ── User schemas ──────────────────────────────────
+
+    # ── User ──────────────────────────────────────────
     CreateUserRequest:
       type: object
-      required: [name, email]       # обязательные поля
+      required: [name, email]
       properties:
         name:
           type: string
@@ -267,7 +327,8 @@ components:
 
     UpdateUserRequest:
       type: object
-      properties:                   # все поля опциональны — обновляем только то что пришло
+      required: [name, email]
+      properties:
         name:
           type: string
           example: "Ivan Petrov"
@@ -280,8 +341,8 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
+          example: 1
         name:
           type: string
         email:
@@ -293,22 +354,80 @@ components:
           type: string
           format: date-time
 
-    # ── Comment schemas ───────────────────────────────
+    # ── Post ──────────────────────────────────────────
+    CreatePostRequest:
+      type: object
+      required: [name, text, author_id]
+      properties:
+        name:
+          type: string
+          example: "Мой первый пост"
+        text:
+          type: string
+          example: "Содержимое поста"
+        author_id:
+          type: integer
+          example: 1
+
+    UpdatePostRequest:
+      type: object
+      required: [name, text, author_id]
+      properties:
+        name:
+          type: string
+          example: "Обновлённый пост"
+        text:
+          type: string
+          example: "Обновлённое содержимое"
+        author_id:
+          type: integer
+          example: 1
+
+    PostResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+        text:
+          type: string
+        author_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # ── Comment ───────────────────────────────────────
     CreateCommentRequest:
       type: object
-      required: [user_id, content]
+      required: [author_id, post_id, text]
       properties:
-        user_id:
+        author_id:
+          type: integer
+          example: 1
+        post_id:
+          type: integer
+          example: 1
+        text:
           type: string
-          format: uuid              # привязка комментария к пользователю
-        content:
-          type: string
-          example: "Отличный сервис!"
+          example: "Отличный пост!"
 
     UpdateCommentRequest:
       type: object
+      required: [author_id, post_id, text]
       properties:
-        content:
+        author_id:
+          type: integer
+          example: 1
+        post_id:
+          type: integer
+          example: 1
+        text:
           type: string
           example: "Обновлённый комментарий"
 
@@ -316,12 +435,13 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
-        user_id:
-          type: string
-          format: uuid
-        content:
+          type: integer
+          example: 1
+        author_id:
+          type: integer
+        post_id:
+          type: integer
+        text:
           type: string
         created_at:
           type: string
@@ -330,7 +450,7 @@ components:
           type: string
           format: date-time
 
-    # ── Error schema ──────────────────────────────────
+    # ── Error ─────────────────────────────────────────
     ErrorResponse:
       type: object
       properties:
@@ -338,7 +458,6 @@ components:
           type: string
           example: "resource not found"
 
-  # переиспользуемые ответы — не повторяем одно и то же в каждом эндпоинте
   responses:
     BadRequest:
       description: Неверный запрос

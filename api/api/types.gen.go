@@ -11,18 +11,38 @@ import (
 
 // CommentResponse defines model for CommentResponse.
 type CommentResponse struct {
-	Content   *string             `json:"content,omitempty"`
-	CreatedAt *time.Time          `json:"created_at,omitempty"`
-	Id        *openapi_types.UUID `json:"id,omitempty"`
-	UpdatedAt *time.Time          `json:"updated_at,omitempty"`
-	UserId    *openapi_types.UUID `json:"user_id,omitempty"`
+	AuthorId  *int       `json:"author_id,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// Id Example: 1
+	Id        *int       `json:"id,omitempty"`
+	PostId    *int       `json:"post_id,omitempty"`
+	Text      *string    `json:"text,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 }
 
 // CreateCommentRequest defines model for CreateCommentRequest.
 type CreateCommentRequest struct {
-	// Content Example: Отличный сервис!
-	Content string             `json:"content"`
-	UserId  openapi_types.UUID `json:"user_id"`
+	// AuthorId Example: 1
+	AuthorId int `json:"author_id"`
+
+	// PostId Example: 1
+	PostId int `json:"post_id"`
+
+	// Text Example: Отличный пост!
+	Text string `json:"text"`
+}
+
+// CreatePostRequest defines model for CreatePostRequest.
+type CreatePostRequest struct {
+	// AuthorId Example: 1
+	AuthorId int `json:"author_id"`
+
+	// Name Example: Мой первый пост
+	Name string `json:"name"`
+
+	// Text Example: Содержимое поста
+	Text string `json:"text"`
 }
 
 // CreateUserRequest defines model for CreateUserRequest.
@@ -40,28 +60,60 @@ type ErrorResponse struct {
 	Error *string `json:"error,omitempty"`
 }
 
+// PostResponse defines model for PostResponse.
+type PostResponse struct {
+	AuthorId  *int       `json:"author_id,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// Id Example: 1
+	Id        *int       `json:"id,omitempty"`
+	Name      *string    `json:"name,omitempty"`
+	Text      *string    `json:"text,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
 // UpdateCommentRequest defines model for UpdateCommentRequest.
 type UpdateCommentRequest struct {
-	// Content Example: Обновлённый комментарий
-	Content *string `json:"content,omitempty"`
+	// AuthorId Example: 1
+	AuthorId int `json:"author_id"`
+
+	// PostId Example: 1
+	PostId int `json:"post_id"`
+
+	// Text Example: Обновлённый комментарий
+	Text string `json:"text"`
+}
+
+// UpdatePostRequest defines model for UpdatePostRequest.
+type UpdatePostRequest struct {
+	// AuthorId Example: 1
+	AuthorId int `json:"author_id"`
+
+	// Name Example: Обновлённый пост
+	Name string `json:"name"`
+
+	// Text Example: Обновлённое содержимое
+	Text string `json:"text"`
 }
 
 // UpdateUserRequest defines model for UpdateUserRequest.
 type UpdateUserRequest struct {
 	// Email Example: ivan@example.com
-	Email *openapi_types.Email `json:"email,omitempty"`
+	Email openapi_types.Email `json:"email"`
 
 	// Name Example: Ivan Petrov
-	Name *string `json:"name,omitempty"`
+	Name string `json:"name"`
 }
 
 // UserResponse defines model for UserResponse.
 type UserResponse struct {
-	CreatedAt *time.Time          `json:"created_at,omitempty"`
-	Email     *string             `json:"email,omitempty"`
-	Id        *openapi_types.UUID `json:"id,omitempty"`
-	Name      *string             `json:"name,omitempty"`
-	UpdatedAt *time.Time          `json:"updated_at,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Email     *string    `json:"email,omitempty"`
+
+	// Id Example: 1
+	Id        *int       `json:"id,omitempty"`
+	Name      *string    `json:"name,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 }
 
 // BadRequest defines model for BadRequest.
@@ -78,6 +130,12 @@ type CreateCommentJSONRequestBody = CreateCommentRequest
 
 // UpdateCommentJSONRequestBody defines body for UpdateComment for application/json ContentType.
 type UpdateCommentJSONRequestBody = UpdateCommentRequest
+
+// CreatePostJSONRequestBody defines body for CreatePost for application/json ContentType.
+type CreatePostJSONRequestBody = CreatePostRequest
+
+// UpdatePostJSONRequestBody defines body for UpdatePost for application/json ContentType.
+type UpdatePostJSONRequestBody = UpdatePostRequest
 
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody = CreateUserRequest
