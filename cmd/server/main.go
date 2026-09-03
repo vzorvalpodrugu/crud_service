@@ -2,8 +2,13 @@ package main
 
 import (
 	"context"
+	"crud_service/api/api"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -11,6 +16,10 @@ import (
 
 	"crud_service/internal/config"
 	"crud_service/internal/db"
+
+	"crud_service/internal/handler"
+	"crud_service/internal/repository"
+	"crud_service/internal/service"
 )
 
 func main() {
@@ -36,46 +45,30 @@ func main() {
 
 	log.Println("successful connect to database")
 
-	//тест репозиториев
-	//user_repository := repository.NewUserRepository(pool)
-	//post_repository := repository.NewPostRepository(pool)
-	////comment_repository := repository.NewCommentRepository(pool)
-	//
-	//user := &domain.User{
-	//	Name:  "Pavel",
-	//	Email: "Pavel.com",
-	//}
-	////createdUser, err := user_repository.Create(ctx, user)
-	////if err != nil {
-	////	log.Printf("failed to create user: %v", err)
-	////} else {
-	////	log.Printf("user created:\n %+v\n\n", createdUser)
-	////}
-	//user, err = user_repository.GetById(ctx, 1)
-	//if err != nil {
-	//	log.Printf("failed to get user: %v", err)
-	//}
-	//log.Printf("User by id: %v\n\n", user)
-	//
-	//post := &domain.Post{
-	//	Name:      "Mega_post",
-	//	Author_id: 1,
-	//	Text:      "i am pavel hello",
-	//}
-	//
-	//createdPost, err := post_repository.Create(ctx, post)
-	//if err != nil {
-	//	log.Printf("failed to create post: %v", err)
-	//}
-	//log.Printf("post: %v\n\n", createdPost)
+	//4 repositories
+	userRepo := repository.NewUserRepository(pool)
+	postRepo := repository.NewPostRepository(pool)
+	commentRepo := repository.NewCommentRepository(pool)
 
-	//4 создание echo
+	//5 services
+	userService := service.NewUserService(userRepo)
+	postService := service.NewPostService(postRepo)
+	commentService := service.NewCommentService(commentRepo)
+
+	//6 handlers
+	server := handler.NewServer(userService, postService, commentService)
+	strictHandler := api.NewStrictHandler(server, nil)
+
+	//7 создание echo
 	e := echo.New()
-
+	e.HideBanner = true
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORS()) //запросы с фронтенда
 
-	//5 создание тестового healthcheck
+	api.RegisterHandlers(e, strictHandler)
+
+	//8 создание тестового healthcheck
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(200, map[string]string{
 			"status": "ok",
@@ -83,11 +76,27 @@ func main() {
 		})
 	})
 
-	//6 запуск сервера
-	address := fmt.Sprintf(":%s", cfg.App.Port)
-	log.Println("server start on the address: ", address)
-	if err := e.Start(address); err != nil {
-		log.Println("cannot start server:", err)
+	//9 запуск сервера
+	go func() {
+		address := fmt.Sprintf(":%s", cfg.App.Port)
+		log.Println("server start on the address: ", address)
+		if err := e.Start(address); err != nil {
+			log.Println("cannot start server:", err)
+		}
+	}()
+
+	// Ждём сигнал Ctrl+C или kill
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	// Даём 10 секунд на завершение текущих запросов
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := e.Shutdown(shutdownCtx); err != nil {
+		log.Fatal("Forced shutdown:", err)
 	}
 
+	log.Println("Server exited gracefully")
 }
