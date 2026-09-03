@@ -37,3 +37,7 @@ func commentToResponse(p *domain.Comment) api.CommentResponse {
 		UpdatedAt: &p.Updated_at,
 	}
 }
+
+func stringPtr(s string) *string {
+	return &s
+}
