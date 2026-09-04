@@ -20,14 +20,22 @@ func NewCommentRepository(pool *pgxpool.Pool) CommentRepository {
 
 func (r *commentRepository) Create(ctx context.Context, comment *domain.Comment) (*domain.Comment, error) {
 	query := `
-		INSERT INTO comments (Author_id, Post_id, Text)
-		VALUES ($1, $2, $3)
-	`
+        INSERT INTO comments (author_id, post_id, text)
+        VALUES ($1, $2, $3)
+        RETURNING id, author_id, post_id, text, created_at, updated_at
+    `
 
-	_, err := r.pool.Exec(ctx, query,
+	err := r.pool.QueryRow(ctx, query,
 		comment.Author_id,
 		comment.Post_id,
 		comment.Text,
+	).Scan(
+		&comment.Id,
+		&comment.Author_id,
+		&comment.Post_id,
+		&comment.Text,
+		&comment.Created_at,
+		&comment.Updated_at,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("CommentRepository.Create: %w", err)

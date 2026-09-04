@@ -20,14 +20,25 @@ func NewPostRepository(pool *pgxpool.Pool) PostRepository {
 
 func (r *postRepository) Create(ctx context.Context, post *domain.Post) (*domain.Post, error) {
 	query := `
-		INSERT INTO posts (Name, Author_id, Text)
-		VALUES ($1, $2, $3)
-	`
+        INSERT INTO posts (name, author_id, text)
+        VALUES ($1, $2, $3)
+        RETURNING id, name, author_id, text, created_at, updated_at
+    `
+	//                    ↑ RETURNING говорит PostgreSQL вернуть
+	//                      значения после INSERT включая id и временные метки
+	//                      которые БД сгенерировала сама
 
-	_, err := r.pool.Exec(ctx, query,
+	err := r.pool.QueryRow(ctx, query,
 		post.Name,
 		post.Author_id,
 		post.Text,
+	).Scan(
+		&post.Id,
+		&post.Name,
+		&post.Author_id,
+		&post.Text,
+		&post.Created_at,
+		&post.Updated_at,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("PostRepository.Create: %w", err)

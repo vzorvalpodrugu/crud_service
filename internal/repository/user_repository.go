@@ -5,7 +5,6 @@ import (
 	"crud_service/internal/domain"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -21,20 +20,25 @@ func NewUserRepository(pool *pgxpool.Pool) UserRepository {
 
 func (r *userRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	query := `
-		INSERT INTO users (Name, Email) 
-		VALUES ($1, $2)
-	`
+        INSERT INTO users (name, email)
+        VALUES ($1, $2)
+        RETURNING id, name, email, created_at, updated_at
+    `
 
-	_, err := r.pool.Exec(ctx, query,
+	err := r.pool.QueryRow(ctx, query,
 		user.Name,
 		user.Email,
+	).Scan(
+		&user.Id,
+		&user.Name,
+		&user.Email,
+		&user.Created_at,
+		&user.Updated_at,
 	)
-
 	if err != nil {
-		return nil, fmt.Errorf("failed UserRepository.Create: %w", err)
+		return nil, fmt.Errorf("UserRepository.Create: %w", err)
 	}
 
-	log.Println("successful create user")
 	return user, nil
 }
 
