@@ -1,0 +1,79 @@
+#USERS
+### ListUsers
+GET http://172.28.33.171:8080/users
+
+### CreateUser
+POST http://172.28.33.171:8080/users
+Content-Type: application/json
+
+{"name" : "Yury", "email" : "Starkov14@go.com"}
+
+### GetUserById
+@id = 0
+GET http://172.28.33.171:8080/users/{{id}}
+
+### UpdateUser
+PUT http://172.28.33.171:8080/users/1
+Content-Type: application/json
+
+{
+  "name": "Dmitriy",
+  "email": "Dmitriy@go.com"
+}
+
+### DeleteUser
+DELETE http://172.28.33.171:8080/users/1
+
+#POSTS
+### ListPosts
+GET http://172.28.33.171:8080/posts
+
+### CreatePost
+POST http://172.28.33.171:8080/posts
+Content-Type: application/json
+
+{"name": "Мой второй пост", "text": "Содержимое поста", "author_id": 3}
+
+### GetPostById
+@post_id = 6
+GET http://172.28.33.171:8080/posts/{{post_id}}
+
+### UpdatePost
+PUT http://172.28.33.171:8080/posts/1
+Content-Type: application/json
+
+{
+  "name": "Обновлённый пост",
+  "text": "Новое содержимое",
+  "author_id": 1
+}
+
+### DeletePost
+DELETE http://172.28.33.171:8080/posts/1
+
+#COMMENTS
+### ListComments
+GET http://172.28.33.171:8080/comments
+
+### CreateComment
+POST http://172.28.33.171:8080/comments
+Content-Type: application/json
+
+{"author_id": 3, "post_id": 12, "text": "Отличный пост!"}
+
+### GetCommentById
+@comment_id = 1
+GET http://172.28.33.171:8080/comments/{{comment_id}}
+
+### UpdateComment
+PUT http://172.28.33.171:8080/comments/1
+Content-Type: application/json
+
+{
+  "author_id": 1,
+  "post_id": 1,
+  "text": "Обновлённый комментарий"
+}
+
+### DeleteComment
+DELETE http://172.28.33.171:8080/comments/1
