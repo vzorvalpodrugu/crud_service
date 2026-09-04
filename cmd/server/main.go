@@ -79,7 +79,7 @@ func main() {
 	//9 запуск сервера
 	go func() {
 		address := fmt.Sprintf(":%s", cfg.App.Port)
-		log.Println("server start on the address: ", address)
+		log.Println("server start on the address", address)
 		if err := e.Start(address); err != nil {
 			log.Println("cannot start server:", err)
 		}
