@@ -39,6 +39,10 @@ func (r *userRepository) Create(ctx context.Context, user *domain.User) (*domain
 		return nil, fmt.Errorf("UserRepository.Create: %w", err)
 	}
 
+	if err := r.AssignRole(ctx, user.Id, "user"); err != nil {
+		return nil, fmt.Errorf("UserRepository.Create assignrole: %w", err)
+	}
+
 	return user, nil
 }
 
