@@ -24,7 +24,22 @@ Content-Type: application/json
 ### DeleteUser
 DELETE http://172.28.33.171:8080/users/1
 
-#POSTS
+### AssignRole
+POST http://172.28.33.171:8080/users/3/roles
+Content-Type: application/json
+
+{
+  "role": "admin"
+}
+
+### RemoveRole
+DELETE http://172.28.33.171:8080/users/3/roles
+Content-Type: application/json
+
+{
+    "role" : "admin"
+}
+
 ### ListPosts
 GET http://172.28.33.171:8080/posts
 

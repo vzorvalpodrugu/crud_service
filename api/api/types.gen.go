@@ -9,6 +9,54 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for AssignRoleRequestRole.
+const (
+	AssignRoleRequestRoleAdmin     AssignRoleRequestRole = "admin"
+	AssignRoleRequestRoleModerator AssignRoleRequestRole = "moderator"
+	AssignRoleRequestRoleUser      AssignRoleRequestRole = "user"
+)
+
+// Valid indicates whether the value is a known member of the AssignRoleRequestRole enum.
+func (e AssignRoleRequestRole) Valid() bool {
+	switch e {
+	case AssignRoleRequestRoleAdmin:
+		return true
+	case AssignRoleRequestRoleModerator:
+		return true
+	case AssignRoleRequestRoleUser:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RemoveRoleRequestRole.
+const (
+	RemoveRoleRequestRoleAdmin     RemoveRoleRequestRole = "admin"
+	RemoveRoleRequestRoleModerator RemoveRoleRequestRole = "moderator"
+)
+
+// Valid indicates whether the value is a known member of the RemoveRoleRequestRole enum.
+func (e RemoveRoleRequestRole) Valid() bool {
+	switch e {
+	case RemoveRoleRequestRoleAdmin:
+		return true
+	case RemoveRoleRequestRoleModerator:
+		return true
+	default:
+		return false
+	}
+}
+
+// AssignRoleRequest defines model for AssignRoleRequest.
+type AssignRoleRequest struct {
+	// Role Example: admin
+	Role AssignRoleRequestRole `json:"role"`
+}
+
+// AssignRoleRequestRole Example: admin
+type AssignRoleRequestRole string
+
 // CommentResponse defines model for CommentResponse.
 type CommentResponse struct {
 	AuthorId  *int       `json:"author_id,omitempty"`
@@ -71,6 +119,15 @@ type PostResponse struct {
 	Text      *string    `json:"text,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 }
+
+// RemoveRoleRequest defines model for RemoveRoleRequest.
+type RemoveRoleRequest struct {
+	// Role Example: admin
+	Role RemoveRoleRequestRole `json:"role"`
+}
+
+// RemoveRoleRequestRole Example: admin
+type RemoveRoleRequestRole string
 
 // UpdateCommentRequest defines model for UpdateCommentRequest.
 type UpdateCommentRequest struct {
@@ -142,3 +199,9 @@ type CreateUserJSONRequestBody = CreateUserRequest
 
 // UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
 type UpdateUserJSONRequestBody = UpdateUserRequest
+
+// RemoveRoleJSONRequestBody defines body for RemoveRole for application/json ContentType.
+type RemoveRoleJSONRequestBody = RemoveRoleRequest
+
+// AssignRoleJSONRequestBody defines body for AssignRole for application/json ContentType.
+type AssignRoleJSONRequestBody = AssignRoleRequest

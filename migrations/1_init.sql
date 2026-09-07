@@ -29,10 +29,12 @@ CREATE TABLE IF NOT EXISTS comments(
 
 CREATE TABLE IF NOT EXISTS roles(
     id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL UNIQUE
 );
 
-INSERT INTO roles (name) VALUES ('admin', 'moderator', 'user');
+INSERT INTO roles (name) VALUES ('admin');
+INSERT INTO roles (name) VALUES ('moderator');
+INSERT INTO roles (name) VALUES ('user');
 
 CREATE TABLE IF NOT EXISTS user_roles(
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -48,6 +50,5 @@ DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS roles;
-
 DROP TABLE IF EXISTS user_roles;
 -- +goose StatementEnd

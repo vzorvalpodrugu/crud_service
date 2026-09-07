@@ -136,3 +136,62 @@ func (h *UserHandler) DeleteUser(ctx context.Context, request api.DeleteUserRequ
 	}
 	return api.DeleteUser204Response{}, nil
 }
+
+// --------------------------user_role--------------------
+func (h *UserHandler) AssignRole(ctx context.Context, request api.AssignRoleRequestObject) (api.AssignRoleResponseObject, error) {
+	role := string(request.Body.Role)
+
+	if role != "admin" && role != "moderator" {
+		return api.AssignRole400JSONResponse{
+			BadRequestJSONResponse: api.BadRequestJSONResponse{
+				Error: stringPtr("bad request"),
+			},
+		}, nil
+	}
+
+	if err := h.userService.AssignRole(ctx, request.Id, role); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return api.AssignRole404JSONResponse{
+				NotFoundJSONResponse: api.NotFoundJSONResponse{
+					Error: stringPtr("user not found"),
+				},
+			}, nil
+		}
+		return api.AssignRole500JSONResponse{
+			InternalErrorJSONResponse: api.InternalErrorJSONResponse{
+				Error: stringPtr(err.Error()),
+			},
+		}, nil
+	}
+
+	return api.AssignRole204Response{}, nil
+}
+
+func (h *UserHandler) RemoveRole(ctx context.Context, request api.RemoveRoleRequestObject) (api.RemoveRoleResponseObject, error) {
+	role := string(request.Body.Role)
+
+	if request.Id < 0 || role == "user" {
+		return api.RemoveRole400JSONResponse{
+			BadRequestJSONResponse: api.BadRequestJSONResponse{
+				Error: stringPtr("bad request"),
+			},
+		}, nil
+	}
+
+	if err := h.userService.RemoveRole(ctx, request.Id, role); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return api.RemoveRole404JSONResponse{
+				NotFoundJSONResponse: api.NotFoundJSONResponse{
+					Error: stringPtr("user not found"),
+				},
+			}, nil
+		}
+		return api.RemoveRole500JSONResponse{
+			InternalErrorJSONResponse: api.InternalErrorJSONResponse{
+				Error: stringPtr(err.Error()),
+			},
+		}, nil
+	}
+
+	return api.RemoveRole204Response{}, nil
+}

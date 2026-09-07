@@ -67,6 +67,12 @@ type ServerInterface interface {
 	// UpdateUser Обновить пользователя
 	// (PUT /users/{id})
 	UpdateUser(ctx echo.Context, id int) error
+	// RemoveRole Удалить роль
+	// (DELETE /users/{id}/roles)
+	RemoveRole(ctx echo.Context, id int) error
+	// AssignRole Добавить роль
+	// (POST /users/{id}/roles)
+	AssignRole(ctx echo.Context, id int) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -272,6 +278,38 @@ func (w *ServerInterfaceWrapper) UpdateUser(ctx echo.Context) error {
 	return err
 }
 
+// RemoveRole converts echo context to params.
+func (w *ServerInterfaceWrapper) RemoveRole(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.RemoveRole(ctx, id)
+	return err
+}
+
+// AssignRole converts echo context to params.
+func (w *ServerInterfaceWrapper) AssignRole(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.AssignRole(ctx, id)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -324,6 +362,8 @@ func RegisterHandlersWithOptions(router EchoRouter, si ServerInterface, options 
 	router.DELETE(options.BaseURL+"/users/:id", wrapper.DeleteUser, options.OperationMiddlewares["deleteUser"]...)
 	router.GET(options.BaseURL+"/users/:id", wrapper.GetUserById, options.OperationMiddlewares["getUserById"]...)
 	router.PUT(options.BaseURL+"/users/:id", wrapper.UpdateUser, options.OperationMiddlewares["updateUser"]...)
+	router.DELETE(options.BaseURL+"/users/:id/roles", wrapper.RemoveRole, options.OperationMiddlewares["removeRole"]...)
+	router.POST(options.BaseURL+"/users/:id/roles", wrapper.AssignRole, options.OperationMiddlewares["assignRole"]...)
 	router.GET(options.BaseURL+"/posts", wrapper.ListPosts, options.OperationMiddlewares["listPosts"]...)
 	router.POST(options.BaseURL+"/posts", wrapper.CreatePost, options.OperationMiddlewares["createPost"]...)
 	router.DELETE(options.BaseURL+"/posts/:id", wrapper.DeletePost, options.OperationMiddlewares["deletePost"]...)
@@ -1085,6 +1125,124 @@ func (response UpdateUser500JSONResponse) VisitUpdateUserResponse(w http.Respons
 	return err
 }
 
+type RemoveRoleRequestObject struct {
+	Id   int `json:"id"`
+	Body *RemoveRoleJSONRequestBody
+}
+
+type RemoveRoleResponseObject interface {
+	VisitRemoveRoleResponse(w http.ResponseWriter) error
+}
+
+type RemoveRole204Response struct {
+}
+
+func (response RemoveRole204Response) VisitRemoveRoleResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type RemoveRole400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response RemoveRole400JSONResponse) VisitRemoveRoleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RemoveRole404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response RemoveRole404JSONResponse) VisitRemoveRoleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RemoveRole500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response RemoveRole500JSONResponse) VisitRemoveRoleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssignRoleRequestObject struct {
+	Id   int `json:"id"`
+	Body *AssignRoleJSONRequestBody
+}
+
+type AssignRoleResponseObject interface {
+	VisitAssignRoleResponse(w http.ResponseWriter) error
+}
+
+type AssignRole204Response struct {
+}
+
+func (response AssignRole204Response) VisitAssignRoleResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type AssignRole400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response AssignRole400JSONResponse) VisitAssignRoleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssignRole404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response AssignRole404JSONResponse) VisitAssignRoleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssignRole500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response AssignRole500JSONResponse) VisitAssignRoleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// ListComments Получить все комментарии
@@ -1132,6 +1290,12 @@ type StrictServerInterface interface {
 	// UpdateUser Обновить пользователя
 	// (PUT /users/{id})
 	UpdateUser(ctx context.Context, request UpdateUserRequestObject) (UpdateUserResponseObject, error)
+	// RemoveRole Удалить роль
+	// (DELETE /users/{id}/roles)
+	RemoveRole(ctx context.Context, request RemoveRoleRequestObject) (RemoveRoleResponseObject, error)
+	// AssignRole Добавить роль
+	// (POST /users/{id}/roles)
+	AssignRole(ctx context.Context, request AssignRoleRequestObject) (AssignRoleResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx echo.Context, request any) (any, error)
@@ -1605,34 +1769,118 @@ func (sh *strictHandler) UpdateUser(ctx echo.Context, id int) error {
 	return nil
 }
 
+// RemoveRole operation middleware
+func (sh *strictHandler) RemoveRole(ctx echo.Context, id int) error {
+	var request RemoveRoleRequestObject
+
+	request.Id = id
+
+	var body RemoveRoleJSONRequestBody
+	var err error
+	if binder, ok := ctx.Echo().Binder.(*echo.DefaultBinder); ok {
+		// Bind only the request body, so that path and query parameters
+		// are not also bound into the body struct.
+		err = binder.BindBody(ctx, &body)
+	} else {
+		// A custom binder is installed on the Echo instance; defer to it
+		// entirely, since echo.Binder does not expose body-only binding.
+		err = ctx.Bind(&body)
+	}
+	if err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.RemoveRole(ctx.Request().Context(), request.(RemoveRoleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RemoveRole")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(RemoveRoleResponseObject); ok {
+		return validResponse.VisitRemoveRoleResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// AssignRole operation middleware
+func (sh *strictHandler) AssignRole(ctx echo.Context, id int) error {
+	var request AssignRoleRequestObject
+
+	request.Id = id
+
+	var body AssignRoleJSONRequestBody
+	var err error
+	if binder, ok := ctx.Echo().Binder.(*echo.DefaultBinder); ok {
+		// Bind only the request body, so that path and query parameters
+		// are not also bound into the body struct.
+		err = binder.BindBody(ctx, &body)
+	} else {
+		// A custom binder is installed on the Echo instance; defer to it
+		// entirely, since echo.Binder does not expose body-only binding.
+		err = ctx.Bind(&body)
+	}
+	if err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AssignRole(ctx.Request().Context(), request.(AssignRoleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AssignRole")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(AssignRoleResponseObject); ok {
+		return validResponse.VisitAssignRoleResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
