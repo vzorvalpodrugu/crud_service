@@ -11,6 +11,8 @@ type UserService interface {
 	GetAll(ctx context.Context) ([]*domain.User, error)
 	Update(ctx context.Context, name, email string, id int) error
 	Delete(ctx context.Context, id int) error
+	AssignRole(ctx context.Context, userId int, role string) error
+	RemoveRole(ctx context.Context, userId int, role string) error
 }
 
 type PostService interface {

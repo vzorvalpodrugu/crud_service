@@ -73,3 +73,20 @@ func (s *userService) Delete(ctx context.Context, id int) error {
 	}
 	return nil
 }
+
+// --------------------user_roles------------------
+func (s *userService) AssignRole(ctx context.Context, userId int, role string) error {
+	if err := s.userRepo.AssignRole(ctx, userId, role); err != nil {
+		return fmt.Errorf("userService.AssignRole: %w", err)
+	}
+
+	return nil
+}
+
+func (s *userService) RemoveRole(ctx context.Context, userId int, role string) error {
+	if err := s.userRepo.RemoveRole(ctx, userId, role); err != nil {
+		return fmt.Errorf("userService.RemoveRole: %w", err)
+	}
+
+	return nil
+}
