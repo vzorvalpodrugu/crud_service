@@ -176,6 +176,9 @@ type UserResponse struct {
 // BadRequest defines model for BadRequest.
 type BadRequest = ErrorResponse
 
+// Forbidden defines model for Forbidden.
+type Forbidden = ErrorResponse
+
 // InternalError defines model for InternalError.
 type InternalError = ErrorResponse
 

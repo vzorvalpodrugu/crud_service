@@ -90,3 +90,12 @@ func (s *userService) RemoveRole(ctx context.Context, userId int, role string) e
 
 	return nil
 }
+
+func (s *userService) GetRoles(ctx context.Context, userId int) ([]string, error) {
+	roles, err := s.userRepo.GetRoles(ctx, userId)
+	if err != nil {
+		return nil, fmt.Errorf("userService.GetRoles: %w", err)
+	}
+
+	return roles, nil
+}

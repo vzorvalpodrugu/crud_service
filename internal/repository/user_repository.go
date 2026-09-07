@@ -177,3 +177,35 @@ func (r *userRepository) RemoveRole(ctx context.Context, userId int, role string
 	return nil
 
 }
+
+// get roles by user id
+func (r *userRepository) GetRoles(ctx context.Context, userId int) ([]string, error) {
+	query := `
+		SELECT roles.name
+		FROM user_roles
+		LEFT JOIN roles ON roles.id = user_roles.role_id
+		WHERE user_roles.user_id = $1
+	`
+
+	var roles []string
+
+	rows, err := r.pool.Query(ctx, query, userId)
+	if err != nil {
+		return nil, fmt.Errorf("userRepository.GetRoles: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var role string
+		if err = rows.Scan(&role); err != nil {
+			return nil, fmt.Errorf("userRepository.GetRoles scan: %w", err)
+		}
+		roles = append(roles, role)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("userRepository.GetRoles rows: %w", err)
+	}
+
+	return roles, nil
+}

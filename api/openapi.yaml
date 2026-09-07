@@ -347,6 +347,10 @@ paths:
       responses:
         "204":
           description: Комментарий удалён
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
@@ -538,6 +542,12 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     InternalError:
       description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Нет доступа
       content:
         application/json:
           schema:

@@ -6,7 +6,7 @@ GET http://172.28.33.171:8080/users
 POST http://172.28.33.171:8080/users
 Content-Type: application/json
 
-{"name" : "Yury", "email" : "Starkov14@go.com"}
+{"name" : "John", "email" : "Starkov16@go.com"}
 
 ### GetUserById
 @id = 0
@@ -74,10 +74,10 @@ GET http://172.28.33.171:8080/comments
 POST http://172.28.33.171:8080/comments
 Content-Type: application/json
 
-{"author_id": 3, "post_id": 12, "text": "Отличный пост!"}
+{"author_id": 3, "post_id": 1, "text": "Отличный пост!"}
 
 ### GetCommentById
-@comment_id = 1
+@comment_id = 6
 GET http://172.28.33.171:8080/comments/{{comment_id}}
 
 ### UpdateComment
@@ -91,4 +91,5 @@ Content-Type: application/json
 }
 
 ### DeleteComment
-DELETE http://172.28.33.171:8080/comments/1
+DELETE http://172.28.33.171:8080/comments/7
+X-User-ID: 3

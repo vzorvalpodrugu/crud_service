@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crud_service/api/api"
+	middleware2 "crud_service/internal/middleware"
 	"fmt"
 	"log"
 	"os"
@@ -66,7 +67,13 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS()) //запросы с фронтенда
 
-	api.RegisterHandlers(e, strictHandler)
+	api.RegisterHandlersWithOptions(e, strictHandler, api.RegisterHandlersOptions{
+		OperationMiddlewares: map[string][]echo.MiddlewareFunc{
+			"deleteComment": {middleware2.RolesMiddleware(userService)},
+		},
+	})
+
+	//api.RegisterHandlers(e, strictHandler)
 
 	//8 создание тестового healthcheck
 	e.GET("/health", func(c echo.Context) error {

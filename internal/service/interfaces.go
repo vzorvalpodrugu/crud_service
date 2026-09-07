@@ -13,6 +13,7 @@ type UserService interface {
 	Delete(ctx context.Context, id int) error
 	AssignRole(ctx context.Context, userId int, role string) error
 	RemoveRole(ctx context.Context, userId int, role string) error
+	GetRoles(ctx context.Context, userId int) ([]string, error)
 }
 
 type PostService interface {

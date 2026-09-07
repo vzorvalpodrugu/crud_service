@@ -2,7 +2,9 @@ package handler
 
 import (
 	"context"
+	"crud_service/internal/middleware"
 	"errors"
+	"log"
 
 	"crud_service/api/api"
 	"crud_service/internal/repository"
@@ -92,7 +94,13 @@ func (h *CommentHandler) UpdateComment(ctx context.Context, request api.UpdateCo
 }
 
 func (h *CommentHandler) DeleteComment(ctx context.Context, request api.DeleteCommentRequestObject) (api.DeleteCommentResponseObject, error) {
-	err := h.commentService.Delete(ctx, request.Id)
+	var isAdmin bool = false
+	var isModerator bool = false
+	var isAuthor bool = false
+
+	user_id := ctx.Value(middleware.UserIDs).(int)
+
+	comment, err := h.commentService.GetById(ctx, request.Id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return api.DeleteComment404JSONResponse{
@@ -107,5 +115,39 @@ func (h *CommentHandler) DeleteComment(ctx context.Context, request api.DeleteCo
 			},
 		}, nil
 	}
+
+	//валидация: либо ты админ, либо ты модератор, либо ты автор
+	roles, _ := ctx.Value("RolesKey").([]string)
+
+	for _, role := range roles {
+		if role == "admin" {
+			isAdmin = true
+		}
+		if role == "moderator" {
+			isModerator = true
+		}
+	}
+	isAuthor = comment.Author_id == user_id
+
+	log.Println(user_id, ": user_id")
+	log.Println(comment.Author_id, ": author_id")
+
+	if !isAdmin && !isModerator && !isAuthor {
+		return api.DeleteComment403JSONResponse{
+			ForbiddenJSONResponse: api.ForbiddenJSONResponse{
+				Error: stringPtr("have not permission"),
+			},
+		}, nil
+	}
+
+	err = h.commentService.Delete(ctx, request.Id)
+	if err != nil {
+		return api.DeleteComment500JSONResponse{
+			InternalErrorJSONResponse: api.InternalErrorJSONResponse{
+				Error: stringPtr(err.Error()),
+			},
+		}, nil
+	}
+
 	return api.DeleteComment204Response{}, nil
 }
