@@ -27,6 +27,19 @@ CREATE TABLE IF NOT EXISTS comments(
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS roles(
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+);
+
+INSERT INTO roles (name) VALUES ('admin', 'moderator', 'user');
+
+CREATE TABLE IF NOT EXISTS user_roles(
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    role_id INTEGER REFERENCES roles(id) ON DELETE CASCADE,
+    PRIMARY KEY(user_id, role_id)
+);
+
 -- +goose StatementEnd
 
 -- +goose Down
@@ -34,4 +47,7 @@ CREATE TABLE IF NOT EXISTS comments(
 DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS roles;
+
+DROP TABLE IF EXISTS user_roles;
 -- +goose StatementEnd
