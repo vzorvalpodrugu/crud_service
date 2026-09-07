@@ -107,6 +107,53 @@ paths:
         "500":
           $ref: '#/components/responses/InternalError'
 
+  /users/{id}/roles:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    post:
+      summary: Добавить роль
+      operationId: assignRole
+      tags: [ users ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignRoleRequest'
+      responses:
+        "204":
+          description: Роль добавлена
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Удалить роль
+      operationId: removeRole
+      tags: [ users ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveRoleRequest'
+      responses:
+        "204":
+          description: Роль удалена
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
   # ───── POSTS ─────────────────────────────────────────
 
   /posts:
@@ -336,6 +383,24 @@ components:
           type: string
           format: email
           example: "ivan@example.com"
+
+    AssignRoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum : ['admin', 'moderator', 'user']
+          example: "admin"
+
+    RemoveRoleRequest:
+      type: object
+      required: [ role ]
+      properties:
+        role:
+          type: string
+          enum: ['admin', 'moderator']
+          example: "admin"
 
     UserResponse:
       type: object
