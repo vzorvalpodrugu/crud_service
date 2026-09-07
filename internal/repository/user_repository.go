@@ -143,3 +143,33 @@ func (r *userRepository) Delete(ctx context.Context, id int) error {
 
 	return nil
 }
+
+// --------------user_roles-------------//
+
+// assign role for user
+func (r *userRepository) AssignRole(ctx context.Context, userId int, role string) error {
+	query := `
+		INSERT INTO user_roles (user_id, role_id) 
+		VALUES ($1, SELECT id FROM roles WHERE name = $2)
+	`
+
+	if _, err := r.pool.Exec(ctx, query, userId, role); err != nil {
+		return fmt.Errorf("userRepository.AssignRole: %w", err)
+	}
+
+	return nil
+}
+
+// remove role for user
+func (r *userRepository) RemoveRole(ctx context.Context, userId int, role string) error {
+	query := `
+		DELETE FROM user_roles WHERE user_id = &1 AND role_id = (SELECT id FROM roles WHERE name = &2)
+	`
+
+	if _, err := r.pool.Exec(ctx, query, userId, role); err != nil {
+		return fmt.Errorf("userRepository.RemoveRole: %w", err)
+	}
+
+	return nil
+
+}
