@@ -6,7 +6,7 @@ GET http://172.28.33.171:8080/users
 POST http://172.28.33.171:8080/users
 Content-Type: application/json
 
-{"name" : "John", "email" : "Starkov16@go.com"}
+{"name" : "God", "email" : "Starkov@god.com"}
 
 ### GetUserById
 @id = 0
@@ -25,19 +25,19 @@ Content-Type: application/json
 DELETE http://172.28.33.171:8080/users/1
 
 ### AssignRole
-POST http://172.28.33.171:8080/users/3/roles
+POST http://172.28.33.171:8080/users/7/roles
 Content-Type: application/json
 
 {
-  "role": "admin"
+  "role": "moderator"
 }
 
 ### RemoveRole
-DELETE http://172.28.33.171:8080/users/3/roles
+DELETE http://172.28.33.171:8080/users/7/roles
 Content-Type: application/json
 
 {
-    "role" : "admin"
+    "role" : "moderator"
 }
 
 ### ListPosts
@@ -47,7 +47,7 @@ GET http://172.28.33.171:8080/posts
 POST http://172.28.33.171:8080/posts
 Content-Type: application/json
 
-{"name": "Мой второй пост", "text": "Содержимое поста", "author_id": 3}
+{"name": "Пост Johna", "text": "Содержимое поста", "author_id": 5}
 
 ### GetPostById
 @post_id = 6
@@ -74,7 +74,7 @@ GET http://172.28.33.171:8080/comments
 POST http://172.28.33.171:8080/comments
 Content-Type: application/json
 
-{"author_id": 3, "post_id": 1, "text": "Отличный пост!"}
+{"author_id": 3, "post_id": 2, "text": "Говно а не пост джон"}
 
 ### GetCommentById
 @comment_id = 6
@@ -91,5 +91,5 @@ Content-Type: application/json
 }
 
 ### DeleteComment
-DELETE http://172.28.33.171:8080/comments/7
-X-User-ID: 3
+DELETE http://172.28.33.171:8080/comments/11
+X-User-ID: 7

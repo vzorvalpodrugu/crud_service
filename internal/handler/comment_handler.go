@@ -2,13 +2,11 @@ package handler
 
 import (
 	"context"
-	"crud_service/internal/middleware"
-	"errors"
-	"log"
-
 	"crud_service/api/api"
+	"crud_service/internal/middleware"
 	"crud_service/internal/repository"
 	"crud_service/internal/service"
+	"errors"
 )
 
 type CommentHandler struct {
@@ -94,12 +92,6 @@ func (h *CommentHandler) UpdateComment(ctx context.Context, request api.UpdateCo
 }
 
 func (h *CommentHandler) DeleteComment(ctx context.Context, request api.DeleteCommentRequestObject) (api.DeleteCommentResponseObject, error) {
-	var isAdmin bool = false
-	var isModerator bool = false
-	var isAuthor bool = false
-
-	user_id := ctx.Value(middleware.UserIDs).(int)
-
 	comment, err := h.commentService.GetById(ctx, request.Id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -116,8 +108,13 @@ func (h *CommentHandler) DeleteComment(ctx context.Context, request api.DeleteCo
 		}, nil
 	}
 
-	//валидация: либо ты админ, либо ты модератор, либо ты автор
-	roles, _ := ctx.Value("RolesKey").([]string)
+	//валидация: либо ты админ, либо ты модератор, либо ты автор комментария
+	var isAdmin bool = false
+	var isModerator bool = false
+	var isAuthor bool = false
+
+	user_id := ctx.Value(middleware.UserIDs).(int)
+	roles, _ := ctx.Value(middleware.RolesKey).([]string)
 
 	for _, role := range roles {
 		if role == "admin" {
@@ -128,9 +125,6 @@ func (h *CommentHandler) DeleteComment(ctx context.Context, request api.DeleteCo
 		}
 	}
 	isAuthor = comment.Author_id == user_id
-
-	log.Println(user_id, ": user_id")
-	log.Println(comment.Author_id, ": author_id")
 
 	if !isAdmin && !isModerator && !isAuthor {
 		return api.DeleteComment403JSONResponse{
