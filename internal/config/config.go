@@ -6,8 +6,13 @@ import (
 )
 
 type Config struct {
-	App AppConfig
-	Db  DBConfig
+	App   AppConfig
+	Db    DBConfig
+	Redis RedisConfig
+}
+type RedisConfig struct {
+	Host string
+	Port string
 }
 
 type AppConfig struct {
@@ -31,6 +36,10 @@ func (db DBConfig) DSN() string {
 	)
 }
 
+func (r RedisConfig) Addr() string {
+	return fmt.Sprintf("%s:%s", r.Host, r.Port)
+}
+
 func Load() (*Config, error) {
 	cfg := &Config{
 		App: AppConfig{
@@ -43,6 +52,10 @@ func Load() (*Config, error) {
 			os.Getenv("POSTGRES_PORT"),
 			os.Getenv("POSTGRES_USER"),
 			os.Getenv("POSTGRES_PASSWORD"),
+		},
+		Redis: RedisConfig{
+			os.Getenv("REDIS_HOST"),
+			os.Getenv("REDIS_PORT"),
 		},
 	}
 
