@@ -31,3 +31,7 @@ type CommentRepository interface {
 	Update(ctx context.Context, comment *domain.Comment) error
 	Delete(ctx context.Context, id int) error
 }
+
+type EventRepository interface {
+	Create(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
+}

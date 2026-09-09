@@ -24,9 +24,6 @@ func (r *postRepository) Create(ctx context.Context, post *domain.Post) (*domain
         VALUES ($1, $2, $3)
         RETURNING id, name, author_id, text, created_at, updated_at
     `
-	//                    ↑ RETURNING говорит PostgreSQL вернуть
-	//                      значения после INSERT включая id и временные метки
-	//                      которые БД сгенерировала сама
 
 	err := r.pool.QueryRow(ctx, query,
 		post.Name,
