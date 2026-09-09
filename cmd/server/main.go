@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crud_service/api/api"
+	"crud_service/internal/cache"
 	middleware2 "crud_service/internal/middleware"
 	"fmt"
 	"log"
@@ -46,6 +47,16 @@ func main() {
 
 	log.Println("successful connect to database")
 
+	//4.0 redis
+	redisClient, err := cache.NewRedisClient(ctx, cfg.Redis)
+	if err != nil {
+		log.Println("failed create redis client")
+	}
+	defer redisClient.Close()
+
+	//4.1 cache
+	postCache := cache.PostCache{redisClient}
+
 	//4 repositories
 	userRepo := repository.NewUserRepository(pool)
 	postRepo := repository.NewPostRepository(pool)
@@ -53,7 +64,7 @@ func main() {
 
 	//5 services
 	userService := service.NewUserService(userRepo)
-	postService := service.NewPostService(postRepo)
+	postService := service.NewPostService(postRepo, postCache)
 	commentService := service.NewCommentService(commentRepo)
 
 	//6 handlers

@@ -17,15 +17,15 @@ const (
 )
 
 type PostCache struct {
-	client *redis.Client
+	Client *redis.Client
 }
 
 func NewPostCache(client *redis.Client) *PostCache {
-	return &PostCache{client: client}
+	return &PostCache{Client: client}
 }
 
 func (c *PostCache) GetAll(ctx context.Context) ([]*domain.Post, error) {
-	data, err := c.client.Get(ctx, postsAllKey).Bytes()
+	data, err := c.Client.Get(ctx, postsAllKey).Bytes()
 	if err != nil {
 		if err == redis.Nil {
 			return nil, nil
@@ -48,7 +48,7 @@ func (c *PostCache) SetAll(ctx context.Context, posts []*domain.Post) error {
 		return fmt.Errorf("PostCache.SetAll Marshal: %w", err)
 	}
 
-	if err := c.client.Set(ctx, postsAllKey, data, postsTTL).Err(); err != nil {
+	if err := c.Client.Set(ctx, postsAllKey, data, postsTTL).Err(); err != nil {
 		return fmt.Errorf("PostCache.SetAll set: %w", err)
 	}
 
@@ -56,7 +56,7 @@ func (c *PostCache) SetAll(ctx context.Context, posts []*domain.Post) error {
 }
 
 func (c *PostCache) GetById(ctx context.Context, id int) (*domain.Post, error) {
-	data, err := c.client.Get(ctx, fmt.Sprintf(postKeyFmt, id)).Bytes()
+	data, err := c.Client.Get(ctx, fmt.Sprintf(postKeyFmt, id)).Bytes()
 	if err != nil {
 		if err == redis.Nil {
 			return nil, nil
@@ -79,7 +79,7 @@ func (c *PostCache) SetById(ctx context.Context, post *domain.Post) error {
 		return fmt.Errorf("PostCache.SetById marshal: %w", err)
 	}
 
-	if err := c.client.Set(ctx, fmt.Sprintf(postKeyFmt, post.Id), data, postsTTL).Err(); err != nil {
+	if err := c.Client.Set(ctx, fmt.Sprintf(postKeyFmt, post.Id), data, postsTTL).Err(); err != nil {
 		return fmt.Errorf("PostCache.SetById set: %w", err)
 	}
 
@@ -88,7 +88,7 @@ func (c *PostCache) SetById(ctx context.Context, post *domain.Post) error {
 
 // CREATE, UPDATE, DELETE for post
 func (c *PostCache) Invalidate(ctx context.Context, id int) error {
-	if err := c.client.Del(ctx, postsAllKey, fmt.Sprintf(postKeyFmt, id)).Err(); err != nil {
+	if err := c.Client.Del(ctx, postsAllKey, fmt.Sprintf(postKeyFmt, id)).Err(); err != nil {
 		return fmt.Errorf("PostCache.SetById del: %w", err)
 	}
 
