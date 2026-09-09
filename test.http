@@ -6,7 +6,7 @@ GET http://172.28.33.171:8080/users
 POST http://172.28.33.171:8080/users
 Content-Type: application/json
 
-{"name" : "God", "email" : "Starkov@god.com"}
+{"name" : "Yury", "email" : "Starkov@mail.com"}
 
 ### GetUserById
 @id = 0
@@ -47,10 +47,10 @@ GET http://172.28.33.171:8080/posts
 POST http://172.28.33.171:8080/posts
 Content-Type: application/json
 
-{"name": "Пост Johna", "text": "Содержимое поста", "author_id": 5}
+{"name": "Пост Yury", "text": "Содержимое поста", "author_id": 1}
 
 ### GetPostById
-@post_id = 6
+@post_id = 1
 GET http://172.28.33.171:8080/posts/{{post_id}}
 
 ### UpdatePost
