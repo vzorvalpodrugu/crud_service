@@ -4,7 +4,9 @@ import (
 	"context"
 	"crud_service/api/api"
 	"crud_service/internal/cache"
+	"crud_service/internal/kafka"
 	middleware2 "crud_service/internal/middleware"
+	"crud_service/internal/outbox"
 	"fmt"
 	"log"
 	"os"
@@ -54,17 +56,33 @@ func main() {
 	}
 	defer redisClient.Close()
 
-	//4.1 cache
+	//4.0.1 cache
 	postCache := cache.PostCache{redisClient}
+
+	//4.1 kafka
+	kafkaProducer := kafka.NewProducer(cfg.Kafka.Brokers)
+	defer kafkaProducer.Close()
+	log.Println("Kafka producer created")
 
 	//4 repositories
 	userRepo := repository.NewUserRepository(pool)
 	postRepo := repository.NewPostRepository(pool)
 	commentRepo := repository.NewCommentRepository(pool)
+	outboxRepo := repository.NewOutboxRepository(pool)
+
+	//outbox processor
+	processor := outbox.NewProcessor(outboxRepo, kafkaProducer)
+
+	//context for processor
+	processorCtx, cancelProcessor := context.WithCancel(context.Background())
+	defer cancelProcessor()
+
+	//start processor
+	processor.Start(processorCtx)
 
 	//5 services
 	userService := service.NewUserService(userRepo)
-	postService := service.NewPostService(postRepo, postCache)
+	postService := service.NewPostService(postRepo, postCache, outboxRepo, pool)
 	commentService := service.NewCommentService(commentRepo)
 
 	//6 handlers
