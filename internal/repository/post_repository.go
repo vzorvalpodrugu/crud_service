@@ -18,14 +18,14 @@ func NewPostRepository(pool *pgxpool.Pool) PostRepository {
 	return &postRepository{pool: pool}
 }
 
-func (r *postRepository) Create(ctx context.Context, post *domain.Post) (*domain.Post, error) {
+func (r *postRepository) Create(ctx context.Context, tx pgx.Tx, post *domain.Post) (*domain.Post, error) {
 	query := `
         INSERT INTO posts (name, author_id, text)
         VALUES ($1, $2, $3)
         RETURNING id, name, author_id, text, created_at, updated_at
     `
 
-	err := r.pool.QueryRow(ctx, query,
+	err := tx.QueryRow(ctx, query,
 		post.Name,
 		post.Author_id,
 		post.Text,

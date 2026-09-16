@@ -3,22 +3,29 @@ package service
 import (
 	"context"
 	"crud_service/internal/cache"
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"crud_service/internal/domain"
 	"crud_service/internal/repository"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type postService struct {
-	postRepo  repository.PostRepository
-	postCache cache.PostCache
+	postRepo   repository.PostRepository
+	outboxRepo repository.OutboxRepository
+	postCache  cache.PostCache
+	pool       *pgxpool.Pool
 }
 
-func NewPostService(postRepo repository.PostRepository, postCache cache.PostCache) PostService {
+func NewPostService(postRepo repository.PostRepository, postCache cache.PostCache, outboxRepo repository.OutboxRepository, pool *pgxpool.Pool) PostService {
 	return &postService{
-		postRepo:  postRepo,
-		postCache: postCache,
+		postRepo:   postRepo,
+		postCache:  postCache,
+		outboxRepo: outboxRepo,
+		pool:       pool,
 	}
 }
 
@@ -29,11 +36,39 @@ func (s *postService) Create(ctx context.Context, name, text string, author_id i
 		Author_id: author_id,
 	}
 
-	created, err := s.postRepo.Create(ctx, post)
+	//начало транзакции
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postService.Create — user not found: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	//1. создаём пост внутри транзакции
+	created, err := s.postRepo.Create(ctx, tx, post)
 	if err != nil {
 		return nil, fmt.Errorf("postService.Create: %w", err)
 	}
 
+	//2. сериализуем пост в json
+	payload, err := json.Marshal(post)
+	if err != nil {
+		return nil, fmt.Errorf("postService.Create marshal: %w", err)
+	}
+
+	//3.записываем событие в outbox
+	if err := s.outboxRepo.Create(ctx, tx, &domain.OutboxEvent{
+		EventType: domain.EventPostCreated,
+		Data:      payload,
+	}); err != nil {
+		return nil, fmt.Errorf("postService.Create outbox: %w", err)
+	}
+
+	//4.коммит транзакцию
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("postService.Create commit: %w", err)
+	}
+
+	//5. работа с кешем
 	if err = s.postCache.SetById(ctx, created); err != nil {
 		log.Println("PostService.Create SetById cache failed")
 	}
