@@ -19,7 +19,7 @@ type UserRepository interface {
 }
 
 type PostRepository interface {
-	Create(ctx context.Context, post *domain.Post) (*domain.Post, error)
+	Create(ctx context.Context, tx pgx.Tx, post *domain.Post) (*domain.Post, error)
 	GetById(ctx context.Context, id int) (*domain.Post, error)
 	GetAll(ctx context.Context) ([]*domain.Post, error)
 	Update(ctx context.Context, post *domain.Post) error
