@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"crud_service/internal/domain"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type UserRepository interface {
@@ -32,6 +34,9 @@ type CommentRepository interface {
 	Delete(ctx context.Context, id int) error
 }
 
-type EventRepository interface {
-	Create(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
+type OutboxRepository interface {
+	Create(ctx context.Context, tx pgx.Tx, event *domain.OutboxEvent) error
+	GetPending(ctx context.Context) ([]*domain.OutboxEvent, error)
+	MarkSent(ctx context.Context, id int) error
+	MarkFailed(ctx context.Context, id int) error
 }
