@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS outbox(
     sent_at TIMESTAMPTZ
 );
 
-CREATE INDEX IF NOT EXISTS idx_outbox_status ON outbox(status);
+CREATE INDEX IF NOT EXISTS idx_outbox_status ON outbox(status) WHERE status = 'PENDING';
 
 -- +goose StatementEnd
 
