@@ -3,16 +3,14 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Config struct {
 	App   AppConfig
 	Db    DBConfig
 	Redis RedisConfig
-}
-type RedisConfig struct {
-	Host string
-	Port string
+	Kafka KafkaConfig
 }
 
 type AppConfig struct {
@@ -28,12 +26,28 @@ type DBConfig struct {
 	Password string
 }
 
+type RedisConfig struct {
+	Host string
+	Port string
+}
+
+type KafkaConfig struct {
+	Brokers []string
+}
+
 // DSN
 func (db DBConfig) DSN() string {
 	return fmt.Sprintf(
 		"dbname=%s host=%s port=%s user=%s password=%s sslmode=disable",
 		db.Dbname, db.Host, db.Port, db.User, db.Password,
 	)
+}
+
+func getEnv(key, defaultVal string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return defaultVal
 }
 
 func (r RedisConfig) Addr() string {
@@ -56,6 +70,9 @@ func Load() (*Config, error) {
 		Redis: RedisConfig{
 			os.Getenv("REDIS_HOST"),
 			os.Getenv("REDIS_PORT"),
+		},
+		Kafka: KafkaConfig{
+			Brokers: strings.Split(getEnv("KAFKA_BROKERS", "localhost:9092"), ","),
 		},
 	}
 
