@@ -64,6 +64,10 @@ func main() {
 	defer kafkaProducer.Close()
 	log.Println("Kafka producer created")
 
+	kafkaConsumer := kafka.NewConsumer(cfg.Kafka.Brokers)
+	defer kafkaConsumer.Close()
+	log.Printf("Kafka consumer created")
+
 	//4 repositories
 	userRepo := repository.NewUserRepository(pool)
 	postRepo := repository.NewPostRepository(pool)
@@ -71,14 +75,22 @@ func main() {
 	outboxRepo := repository.NewOutboxRepository(pool)
 
 	//outbox processor
-	processor := outbox.NewProcessor(outboxRepo, kafkaProducer)
+	outboxProcessor := outbox.NewProcessor(outboxRepo, kafkaProducer)
 
-	//context for processor
+	//consumer processor
+	consumerProcessor := kafka.NewProcessor(&kafkaConsumer)
+
+	//context for producer processor
 	processorCtx, cancelProcessor := context.WithCancel(context.Background())
 	defer cancelProcessor()
 
+	//context for consumer processor
+	consumerProcessorCtx, consumerCancel := context.WithCancel(context.Background())
+	defer consumerCancel()
+
 	//start processor
-	processor.Start(processorCtx)
+	outboxProcessor.Start(processorCtx)
+	consumerProcessor.Start(consumerProcessorCtx)
 
 	//5 services
 	userService := service.NewUserService(userRepo)
