@@ -1,19 +1,19 @@
 #USERS
 ### ListUsers
-GET http://172.28.33.171:8080/users
+GET http://192.168.0.104:8080/users
 
 ### CreateUser
-POST http://172.28.33.171:8080/users
+POST http://192.168.0.104:8080/users
 Content-Type: application/json
 
 {"name" : "Yury", "email" : "Starkov@mail.com"}
 
 ### GetUserById
 @id = 0
-GET http://172.28.33.171:8080/users/{{id}}
+GET http://192.168.0.104:8080/users/{{id}}
 
 ### UpdateUser
-PUT http://172.28.33.171:8080/users/1
+PUT http://192.168.0.104:8080/users/1
 Content-Type: application/json
 
 {
@@ -22,10 +22,10 @@ Content-Type: application/json
 }
 
 ### DeleteUser
-DELETE http://172.28.33.171:8080/users/1
+DELETE http://192.168.0.104:8080/users/1
 
 ### AssignRole
-POST http://172.28.33.171:8080/users/7/roles
+POST http://192.168.0.104:8080/users/7/roles
 Content-Type: application/json
 
 {
@@ -33,7 +33,7 @@ Content-Type: application/json
 }
 
 ### RemoveRole
-DELETE http://172.28.33.171:8080/users/7/roles
+DELETE http://192.168.0.104:8080/users/7/roles
 Content-Type: application/json
 
 {
@@ -41,20 +41,20 @@ Content-Type: application/json
 }
 
 ### ListPosts
-GET http://172.28.33.171:8080/posts
+GET http://192.168.0.104:8080/posts
 
 ### CreatePost
-POST http://172.28.33.171:8080/posts
+POST http://192.168.0.104:8080/posts
 Content-Type: application/json
 
 {"name": "Пост Yury", "text": "Содержимое поста", "author_id": 1}
 
 ### GetPostById
 @post_id = 1
-GET http://172.28.33.171:8080/posts/{{post_id}}
+GET http://192.168.0.104:8080/posts/{{post_id}}
 
 ### UpdatePost
-PUT http://172.28.33.171:8080/posts/1
+PUT http://192.168.0.104:8080/posts/1
 Content-Type: application/json
 
 {
@@ -64,24 +64,24 @@ Content-Type: application/json
 }
 
 ### DeletePost
-DELETE http://172.28.33.171:8080/posts/1
+DELETE http://192.168.0.104:8080/posts/1
 
 #COMMENTS
 ### ListComments
-GET http://172.28.33.171:8080/comments
+GET http://192.168.0.104:8080/comments
 
 ### CreateComment
-POST http://172.28.33.171:8080/comments
+POST http://192.168.0.104:8080/comments
 Content-Type: application/json
 
-{"author_id": 3, "post_id": 2, "text": "Говно а не пост джон"}
+{"author_id": 1, "post_id": 2, "text": "Говно а не пост джон"}
 
 ### GetCommentById
 @comment_id = 6
-GET http://172.28.33.171:8080/comments/{{comment_id}}
+GET http://192.168.0.104:8080/comments/{{comment_id}}
 
 ### UpdateComment
-PUT http://172.28.33.171:8080/comments/1
+PUT http://192.168.0.104:8080/comments/1
 Content-Type: application/json
 
 {
@@ -91,5 +91,5 @@ Content-Type: application/json
 }
 
 ### DeleteComment
-DELETE http://172.28.33.171:8080/comments/11
+DELETE http://192.168.0.104:8080/comments/11
 X-User-ID: 7
