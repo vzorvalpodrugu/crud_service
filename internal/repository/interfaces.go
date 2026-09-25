@@ -40,3 +40,7 @@ type OutboxRepository interface {
 	MarkSent(ctx context.Context, id int) error
 	MarkFailed(ctx context.Context, id int) error
 }
+
+type PostEventRepository interface {
+	Save(ctx context.Context, event *domain.PostEvent) (*domain.PostEvent, error)
+}
