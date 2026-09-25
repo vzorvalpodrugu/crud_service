@@ -2,20 +2,37 @@ package kafka
 
 import (
 	"context"
+	"crud_service/internal/domain"
+	"crud_service/internal/repository"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 )
 
-type Processor struct {
-	consumer     *Consumer
-	pollInterval time.Duration
+type PostPayload struct {
+	Id         int       `json:"Id"`
+	Name       string    `json:"Name"`
+	Text       string    `json:"Text"`
+	Author_id  int       `json:"Author_Id"`
+	Created_at time.Time `json:"Created_At"`
+	Updated_at time.Time `json:"Updated_At"`
 }
 
-func NewProcessor(consumer *Consumer) Processor {
+type Processor struct {
+	consumer      *Consumer
+	postEventRepo repository.PostEventRepository
+	pollInterval  time.Duration
+}
+
+func NewProcessor(
+	consumer *Consumer,
+	postEventRepo repository.PostEventRepository,
+) Processor {
 	return Processor{
-		consumer:     consumer,
-		pollInterval: 10 * time.Millisecond,
+		consumer:      consumer,
+		postEventRepo: postEventRepo,
+		pollInterval:  10 * time.Millisecond,
 	}
 }
 
@@ -52,7 +69,34 @@ func (p Processor) process(ctx context.Context) error {
 		log.Printf("Message is empty")
 	}
 
-	log.Printf("Message is %s", string(msg.Value))
+	var eventType string
+	for _, header := range msg.Headers {
+		if header.Key == "event_type" {
+			eventType = string(header.Value)
+		}
+	}
+
+	var postPayload PostPayload
+	if err := json.Unmarshal(msg.Value, &postPayload); err != nil {
+		return fmt.Errorf("Consumer-Processor.process Unmarshal: %w", err)
+	}
+
+	event := &domain.PostEvent{
+		EventType:     eventType,
+		PostId:        postPayload.Id,
+		PostName:      postPayload.Name,
+		PostText:      postPayload.Text,
+		PostAuthorId:  postPayload.Author_id,
+		PostCreatedAt: postPayload.Created_at,
+		PostUpdatedAt: postPayload.Updated_at,
+		ReceivedAt:    time.Now().UTC(),
+	}
+
+	if _, err := p.postEventRepo.Save(ctx, event); err != nil {
+		return fmt.Errorf("Consumer-Processor.process Save: %w", err)
+	}
+
+	log.Printf("processor: successful save")
 
 	return nil
 }
