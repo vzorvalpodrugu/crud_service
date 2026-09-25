@@ -44,7 +44,7 @@ func (p *postEventRepository) Save(ctx context.Context, event *domain.PostEvent)
 		return nil, fmt.Errorf("PostEventRepository.Save Exec: %w", err)
 	}
 
-	log.Printf("Clickhouse has successful saved event")
+	log.Printf("ClickHouse has successful saved event")
 
 	return event, nil
 
