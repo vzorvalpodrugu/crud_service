@@ -7,10 +7,11 @@ import (
 )
 
 type Config struct {
-	App   AppConfig
-	Db    DBConfig
-	Redis RedisConfig
-	Kafka KafkaConfig
+	App        AppConfig
+	Db         DBConfig
+	Redis      RedisConfig
+	Kafka      KafkaConfig
+	ClickHouse ClickHouseConfig
 }
 
 type AppConfig struct {
@@ -33,6 +34,14 @@ type RedisConfig struct {
 
 type KafkaConfig struct {
 	Brokers []string
+}
+
+type ClickHouseConfig struct {
+	Dbname   string
+	User     string
+	Password string
+	Host     string
+	Port     string
 }
 
 // DSN
@@ -73,6 +82,13 @@ func Load() (*Config, error) {
 		},
 		Kafka: KafkaConfig{
 			Brokers: strings.Split(getEnv("KAFKA_BROKERS", "localhost:9092"), ","),
+		},
+		ClickHouse: ClickHouseConfig{
+			os.Getenv("CLICKHOUSE_DB"),
+			os.Getenv("CLICKHOUSE_USER"),
+			os.Getenv("CLICKHOUSE_PASSWORD"),
+			os.Getenv("CLICKHOUSE_HOST"),
+			os.Getenv("CLICKHOUSE_PORT"),
 		},
 	}
 
