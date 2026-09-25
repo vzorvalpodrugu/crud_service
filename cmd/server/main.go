@@ -47,7 +47,17 @@ func main() {
 	}
 	defer pool.Close()
 
-	log.Println("successful connect to database")
+	log.Println("successful connect to postrges database")
+
+	//3.1 подключиться к кликхаусу
+	conn, err := db.NewConnect(cfg.ClickHouse)
+	if err != nil {
+		log.Println(err)
+	}
+
+	defer conn.Close()
+
+	log.Println("successful connect to clickhouse database")
 
 	//4.0 redis
 	redisClient, err := cache.NewRedisClient(ctx, cfg.Redis)
@@ -73,12 +83,13 @@ func main() {
 	postRepo := repository.NewPostRepository(pool)
 	commentRepo := repository.NewCommentRepository(pool)
 	outboxRepo := repository.NewOutboxRepository(pool)
+	postEventRepo := repository.NewPostEventRepository(conn)
 
 	//outbox processor
 	outboxProcessor := outbox.NewProcessor(outboxRepo, kafkaProducer)
 
 	//consumer processor
-	consumerProcessor := kafka.NewProcessor(&kafkaConsumer)
+	consumerProcessor := kafka.NewProcessor(&kafkaConsumer, postEventRepo)
 
 	//context for producer processor
 	processorCtx, cancelProcessor := context.WithCancel(context.Background())
