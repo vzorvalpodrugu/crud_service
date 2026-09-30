@@ -17,6 +17,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"crud_service/internal/config"
 	"crud_service/internal/db"
@@ -124,6 +125,9 @@ func main() {
 			"deleteComment": {middleware2.RolesMiddleware(userService)},
 		},
 	})
+
+	// /metrics
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	//api.RegisterHandlers(e, strictHandler)
 
