@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"crud_service/internal/domain"
+	"crud_service/internal/metrics"
 	"crud_service/internal/repository"
 	"encoding/json"
 	"fmt"
@@ -76,6 +77,8 @@ func (p Processor) process(ctx context.Context) error {
 		}
 	}
 
+	metrics.KafkaConsumedTotal.WithLabelValues(eventType).Inc()
+
 	var postPayload PostPayload
 	if err := json.Unmarshal(msg.Value, &postPayload); err != nil {
 		return fmt.Errorf("Consumer-Processor.process Unmarshal: %w", err)
@@ -93,6 +96,7 @@ func (p Processor) process(ctx context.Context) error {
 	}
 
 	if _, err := p.postEventRepo.Save(ctx, event); err != nil {
+		metrics.ClickHouseWriteErrorsTotal.WithLabelValues(eventType).Inc()
 		return fmt.Errorf("Consumer-Processor.process Save: %w", err)
 	}
 
