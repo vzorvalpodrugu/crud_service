@@ -1,6 +1,6 @@
 #USERS
 ### ListUsers
-GET http://192.168.0.104:8080/users
+GET http://localhost:8080/users
 
 ### CreateUser
 POST http://192.168.0.104:8080/users
@@ -41,10 +41,10 @@ Content-Type: application/json
 }
 
 ### ListPosts
-GET http://192.168.0.104:8080/posts
+GET http://172.18.0.1:8080/posts
 
 ### CreatePost
-POST http://192.168.0.104:8080/posts
+POST http://172.18.0.1:8080/posts
 Content-Type: application/json
 
 {"name": "Пост Yury", "text": "Содержимое поста", "author_id": 1}
