@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"crud_service/internal/domain"
+	"crud_service/internal/metrics"
 	"fmt"
 	"time"
 
@@ -32,6 +33,8 @@ func (r *outboxRepository) Create(ctx context.Context, tx pgx.Tx, event *domain.
 	if err != nil {
 		return fmt.Errorf("outboxRepository.Create: %w", err)
 	}
+
+	metrics.OutboxCreatedEvents.Add(1)
 	return nil
 }
 
@@ -72,6 +75,18 @@ func (r *outboxRepository) GetPending(ctx context.Context) ([]*domain.OutboxEven
 	}
 
 	return events, nil
+}
+
+func (r *outboxRepository) GetCountPendingEvents(ctx context.Context) (int, error) {
+	query := `SELECT COUNT(*) FROM outbox WHERE status = 'PENDING'`
+	var count int
+
+	err := r.pool.QueryRow(ctx, query).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("OutboxRepository.GetCountPendingEvents: %w", err)
+	}
+
+	return count, nil
 }
 
 func (r *outboxRepository) MarkSent(ctx context.Context, id int) error {
