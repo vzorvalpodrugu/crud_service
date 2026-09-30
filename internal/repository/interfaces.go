@@ -39,6 +39,7 @@ type OutboxRepository interface {
 	GetPending(ctx context.Context) ([]*domain.OutboxEvent, error)
 	MarkSent(ctx context.Context, id int) error
 	MarkFailed(ctx context.Context, id int) error
+	GetCountPendingEvents(ctx context.Context) (int, error)
 }
 
 type PostEventRepository interface {
