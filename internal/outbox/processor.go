@@ -4,6 +4,7 @@ import (
 	"context"
 	"crud_service/internal/domain"
 	"crud_service/internal/kafka"
+	"crud_service/internal/metrics"
 	"crud_service/internal/repository"
 	"encoding/json"
 	"fmt"
@@ -24,7 +25,7 @@ func NewProcessor(
 	return &Processor{
 		outboxRepo:   outboxRepo,
 		producer:     producer,
-		pollInterval: 5 * time.Second,
+		pollInterval: 5 * time.Millisecond,
 	}
 }
 
@@ -63,6 +64,9 @@ func (p *Processor) process(ctx context.Context) error {
 
 	log.Println("Outbox processor: fount %d pending events", len(events))
 
+	count, _ := p.outboxRepo.GetCountPendingEvents(ctx)
+	metrics.OutboxPendingEvents.Set(float64(count))
+
 	for _, event := range events {
 		if err := p.handleEvent(ctx, event); err != nil {
 			log.Printf("Outbox processor: failed to handle event %d: %v", event.Id, err)
@@ -78,6 +82,8 @@ func (p *Processor) process(ctx context.Context) error {
 		}
 
 	}
+	count, _ = p.outboxRepo.GetCountPendingEvents(ctx)
+	metrics.OutboxPendingEvents.Set(float64(count))
 
 	return nil
 }
@@ -93,11 +99,19 @@ func (p *Processor) handleEvent(ctx context.Context, event *domain.OutboxEvent) 
 		return fmt.Errorf("failed to extract key: %w", err)
 	}
 
-	return p.producer.Publish(ctx, topic, kafka.Message{
+	err = p.producer.Publish(ctx, topic, kafka.Message{
 		EventType: event.EventType,
 		Key:       key,
 		Value:     event.Data,
 	})
+
+	if err != nil {
+		metrics.KafkaProducedErrorsTotal.WithLabelValues(event.EventType).Inc()
+	}
+
+	metrics.KafkaProducedTotal.WithLabelValues(event.EventType).Inc()
+
+	return nil
 }
 
 func (p *Processor) resolveTopic(eventType string) string {
