@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -22,7 +21,8 @@ func NewProducer(brokers []string) *Producer {
 		Balancer:     &kafka.LeastBytes{},
 		RequiredAcks: kafka.RequireOne,
 		Async:        false,
-		BatchTimeout: 10 * time.Millisecond,
+		//BatchTimeout: 10 * time.Millisecond,
+		BatchSize: 100,
 	}
 
 	return &Producer{writer: writer}
