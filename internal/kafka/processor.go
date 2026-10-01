@@ -33,7 +33,7 @@ func NewProcessor(
 	return Processor{
 		consumer:      consumer,
 		postEventRepo: postEventRepo,
-		pollInterval:  10 * time.Millisecond,
+		pollInterval:  1 * time.Millisecond,
 	}
 }
 
@@ -49,9 +49,14 @@ func (p Processor) Start(ctx context.Context) {
 				log.Printf("Consumer process stopped")
 				return
 			case <-ticker.C:
-				if err := p.process(ctx); err != nil {
-					log.Printf("Consumer process failed: %s", err)
-				}
+				go func() {
+					start := time.Now()
+					if err := p.process(ctx); err != nil {
+						log.Printf("Consumer process failed: %s", err)
+					}
+					dur := time.Since(start)
+					log.Printf("Consumer выполнялся: %v", dur)
+				}()
 			}
 		}
 
@@ -60,7 +65,10 @@ func (p Processor) Start(ctx context.Context) {
 
 func (p Processor) process(ctx context.Context) error {
 	//log.Printf("Try to get a message")
+	start := time.Now()
 	msg, err := p.consumer.Read(ctx)
+	dur := time.Since(start)
+	log.Printf("Consumer read выполнялся: %v", dur)
 
 	if err != nil {
 		return fmt.Errorf("Consumer-Processor.process Read: %w", err)
@@ -79,10 +87,13 @@ func (p Processor) process(ctx context.Context) error {
 
 	metrics.KafkaConsumedTotal.WithLabelValues(eventType).Inc()
 
+	start = time.Now()
 	var postPayload PostPayload
 	if err := json.Unmarshal(msg.Value, &postPayload); err != nil {
 		return fmt.Errorf("Consumer-Processor.process Unmarshal: %w", err)
 	}
+	dur = time.Since(start)
+	log.Printf("Consumer unmarshal выполнялся: %v", dur)
 
 	event := &domain.PostEvent{
 		EventType:     eventType,
@@ -95,10 +106,13 @@ func (p Processor) process(ctx context.Context) error {
 		ReceivedAt:    time.Now().UTC(),
 	}
 
+	start = time.Now()
 	if _, err := p.postEventRepo.Save(ctx, event); err != nil {
 		metrics.ClickHouseWriteErrorsTotal.WithLabelValues(eventType).Inc()
 		return fmt.Errorf("Consumer-Processor.process Save: %w", err)
 	}
+	dur = time.Since(start)
+	log.Printf("Consumer save выполнялся: %v", dur)
 
 	log.Printf("processor: successful save")
 

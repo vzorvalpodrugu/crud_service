@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	kafka2 "github.com/segmentio/kafka-go"
 )
 
 type Processor struct {
@@ -25,7 +27,7 @@ func NewProcessor(
 	return &Processor{
 		outboxRepo:   outboxRepo,
 		producer:     producer,
-		pollInterval: 5 * time.Millisecond,
+		pollInterval: 1 * time.Millisecond,
 	}
 }
 
@@ -34,6 +36,7 @@ func (p *Processor) Start(ctx context.Context) {
 	go func() {
 		log.Println("Outbox processor started")
 
+		counter := 0
 		ticker := time.NewTicker(p.pollInterval)
 		defer ticker.Stop()
 
@@ -43,32 +46,41 @@ func (p *Processor) Start(ctx context.Context) {
 				log.Println("Outbox processor stopped")
 				return
 			case <-ticker.C:
-				if err := p.process(ctx); err != nil {
-					log.Println("Outbox processor error: %v", err)
-				}
+				go func() {
+					//start := time.Now()
+					if err := p.process(ctx, counter); err != nil {
+						log.Println("Outbox processor error: %v", err)
+					}
+					//dur := time.Since(start)
+					//log.Printf("ВРЕМЯ ВЫПОЛНЕНИЯ PROCESS ПОД НОМЕРОМ %d ЗАНЯЛО %v", counter, dur)
+				}()
+				counter++
 			}
 		}
 	}()
 }
 
 // Получает необработанные события и вызывает для них handleEvent и MarkSent, остальные помечает failed
-func (p *Processor) process(ctx context.Context) error {
+func (p *Processor) process(ctx context.Context, counter int) error {
 	events, err := p.outboxRepo.GetPending(ctx)
 	if err != nil {
 		return fmt.Errorf("processor.process GetPending: %w", err)
 	}
-
+	//log.Printf("PROCESS ПОД НОМЕРОМ %d ВЗЯЛ НА СЕБЯ %d ЗАДАЧ", counter, int(len(events)))
 	if len(events) == 0 {
 		return nil
 	}
 
-	log.Println("Outbox processor: fount %d pending events", len(events))
+	//log.Println("Outbox %d processor: fount %d pending events", counter, len(events))
 
 	count, _ := p.outboxRepo.GetCountPendingEvents(ctx)
 	metrics.OutboxPendingEvents.Set(float64(count))
 
+	var kafkaMessages []kafka2.Message
+
 	for _, event := range events {
-		if err := p.handleEvent(ctx, event); err != nil {
+		kafkaEvent, err := p.handleEvent(event)
+		if err != nil {
 			log.Printf("Outbox processor: failed to handle event %d: %v", event.Id, err)
 
 			if err := p.outboxRepo.MarkFailed(ctx, event.Id); err != nil {
@@ -77,41 +89,59 @@ func (p *Processor) process(ctx context.Context) error {
 			continue
 		}
 
+		kafkaMessages = append(kafkaMessages, kafkaEvent)
 		if err := p.outboxRepo.MarkSent(ctx, event.Id); err != nil {
 			log.Printf("Outbox processor: failed to mark event %d as sent: %v", event.Id, err)
 		}
 
 	}
+
+	//start := time.Now()
+	if err := p.producer.Publish(ctx, kafkaMessages...); err != nil {
+		log.Printf("Outbox processor: failed to publish %d events : %v", count, err)
+	}
+	//end := time.Since(start)
+
+	//log.Printf("ВРЕМЯ ВЫПОЛНЕНИЯ PUBLISH НОМЕР %d ЗАНЯЛО %v", counter, end)
+
 	count, _ = p.outboxRepo.GetCountPendingEvents(ctx)
 	metrics.OutboxPendingEvents.Set(float64(count))
 
 	return nil
 }
 
-func (p *Processor) handleEvent(ctx context.Context, event *domain.OutboxEvent) error {
+func (p *Processor) handleEvent(event *domain.OutboxEvent) (kafka2.Message, error) {
 	topic := p.resolveTopic(event.EventType)
 	if topic == "" {
-		return fmt.Errorf("unknown event type: %s", event.EventType)
+		return kafka2.Message{}, fmt.Errorf("unknown event type: %s", event.EventType)
 	}
 
 	key, err := p.extractKey(event.Data)
 	if err != nil {
-		return fmt.Errorf("failed to extract key: %w", err)
+		return kafka2.Message{}, fmt.Errorf("failed to extract key: %w", err)
 	}
 
-	err = p.producer.Publish(ctx, topic, kafka.Message{
-		EventType: event.EventType,
-		Key:       key,
-		Value:     event.Data,
-	})
-
-	if err != nil {
-		metrics.KafkaProducedErrorsTotal.WithLabelValues(event.EventType).Inc()
+	kafkaEvent := kafka2.Message{
+		Topic: topic,
+		Key:   []byte(key),
+		Value: event.Data,
+		Headers: []kafka2.Header{
+			{
+				Key:   "event_type",
+				Value: []byte(event.EventType),
+			},
+		},
 	}
-
 	metrics.KafkaProducedTotal.WithLabelValues(event.EventType).Inc()
+	return kafkaEvent, nil
 
-	return nil
+	//if err != nil {
+	//	metrics.KafkaProducedErrorsTotal.WithLabelValues(event.EventType).Inc()
+	//}
+	//
+	//metrics.KafkaProducedTotal.WithLabelValues(event.EventType).Inc()
+	//
+	//return nil
 }
 
 func (p *Processor) resolveTopic(eventType string) string {
