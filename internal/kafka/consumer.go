@@ -1,39 +1,29 @@
 package kafka
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/segmentio/kafka-go"
 )
 
-type Consumer struct {
-	reader *kafka.Reader
+type KafkaConsumerGroup struct {
+	readers []*kafka.Reader
 }
 
-func NewConsumer(brokers []string) Consumer {
-	return Consumer{reader: kafka.NewReader(kafka.ReaderConfig{
-		Brokers: brokers,
-		GroupID: "posts.group",
-		Topic:   TopicPostsEvents,
-	})}
-}
+func NewConsumerGroup(brokers []string, num int) KafkaConsumerGroup {
+	var readers []*kafka.Reader
 
-func (r *Consumer) Read(ctx context.Context) (kafka.Message, error) {
-	//log.Printf("Try to read message")
-	msg, err := r.reader.ReadMessage(ctx)
-	//log.Printf("ok i get a message")
-	if err != nil {
-		return kafka.Message{}, fmt.Errorf("Consumer.Read ReadMessage: %w", err)
+	for _ = range num {
+		reader := kafka.NewReader(kafka.ReaderConfig{
+			Brokers: brokers,
+			GroupID: "posts.group",
+			Topic:   TopicPostsEvents,
+		})
+		readers = append(readers, reader)
 	}
-
-	return msg, nil
+	return KafkaConsumerGroup{readers: readers}
 }
 
-func (r *Consumer) Close() error {
-	if err := r.reader.Close(); err != nil {
-		return fmt.Errorf("Consumer.Close close: %w", err)
+func (r *KafkaConsumerGroup) Close() {
+	for idx := range len(r.readers) {
+		r.readers[idx].Close()
 	}
-
-	return nil
 }

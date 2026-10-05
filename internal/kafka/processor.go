@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+type PostEventBatch struct {
+	events []*domain.PostEvent
+	length int
+}
 type PostPayload struct {
 	Id         int       `json:"Id"`
 	Name       string    `json:"Name"`
@@ -21,54 +25,67 @@ type PostPayload struct {
 }
 
 type Processor struct {
-	consumer      *Consumer
+	batch         *PostEventBatch
+	consumerGroup *KafkaConsumerGroup
 	postEventRepo repository.PostEventRepository
 	pollInterval  time.Duration
 }
 
 func NewProcessor(
-	consumer *Consumer,
+	consumerGroup *KafkaConsumerGroup,
 	postEventRepo repository.PostEventRepository,
 ) Processor {
 	return Processor{
-		consumer:      consumer,
+		batch:         &PostEventBatch{[]*domain.PostEvent{}, 0},
+		consumerGroup: consumerGroup,
 		postEventRepo: postEventRepo,
 		pollInterval:  1 * time.Millisecond,
 	}
 }
 
-func (p Processor) Start(ctx context.Context) {
-	log.Printf("Consumer processor start")
-	go func() {
-		ticker := time.NewTicker(p.pollInterval)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ctx.Done():
-				log.Printf("Consumer process stopped")
-				return
-			case <-ticker.C:
-				go func() {
-					start := time.Now()
-					if err := p.process(ctx); err != nil {
-						log.Printf("Consumer process failed: %s", err)
+func (p *Processor) Start(ctx context.Context) {
+	for readerId := range len(p.consumerGroup.readers) {
+		go func(readerIdx int) {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					if err := p.process(ctx, readerIdx); err != nil {
+						log.Printf("Consumer-process.Start process: %v", err)
+						continue
 					}
-					dur := time.Since(start)
-					log.Printf("Consumer выполнялся: %v", dur)
-				}()
+
+					p.batch.length++
+
+					//log.Printf("consumer id:%d обработал сообщение; lenght = %d", readerIdx, p.batch.length)
+				}
+			}
+		}(readerId)
+	}
+	go func() {
+		for {
+			if p.batch.length >= 1000 {
+				start := time.Now()
+				if err := p.postEventRepo.SaveBatch(ctx, p.batch.events); err != nil {
+					return
+				}
+
+				p.batch.length = 0
+				p.batch.events = []*domain.PostEvent{}
+
+				dur := time.Since(start)
+				log.Printf("\n\n\nBATCH SUCCESSFUL\nTAKE: %v\n\n\n", dur)
 			}
 		}
-
 	}()
 }
 
-func (p Processor) process(ctx context.Context) error {
+func (p *Processor) process(ctx context.Context, readerId int) error {
 	//log.Printf("Try to get a message")
-	start := time.Now()
-	msg, err := p.consumer.Read(ctx)
-	dur := time.Since(start)
-	log.Printf("Consumer read выполнялся: %v", dur)
+	//start1 := time.Now()
+	msg, err := p.consumerGroup.readers[readerId].ReadMessage(ctx)
+	//dur1 := time.Since(start1)
 
 	if err != nil {
 		return fmt.Errorf("Consumer-Processor.process Read: %w", err)
@@ -87,13 +104,10 @@ func (p Processor) process(ctx context.Context) error {
 
 	metrics.KafkaConsumedTotal.WithLabelValues(eventType).Inc()
 
-	start = time.Now()
 	var postPayload PostPayload
 	if err := json.Unmarshal(msg.Value, &postPayload); err != nil {
 		return fmt.Errorf("Consumer-Processor.process Unmarshal: %w", err)
 	}
-	dur = time.Since(start)
-	log.Printf("Consumer unmarshal выполнялся: %v", dur)
 
 	event := &domain.PostEvent{
 		EventType:     eventType,
@@ -105,16 +119,16 @@ func (p Processor) process(ctx context.Context) error {
 		PostUpdatedAt: postPayload.Updated_at,
 		ReceivedAt:    time.Now().UTC(),
 	}
+	p.batch.events = append(p.batch.events, event)
 
-	start = time.Now()
-	if _, err := p.postEventRepo.Save(ctx, event); err != nil {
-		metrics.ClickHouseWriteErrorsTotal.WithLabelValues(eventType).Inc()
-		return fmt.Errorf("Consumer-Processor.process Save: %w", err)
-	}
-	dur = time.Since(start)
-	log.Printf("Consumer save выполнялся: %v", dur)
+	//start2 := time.Now()
+	//if _, err := p.postEventRepo.SaveOne(ctx, event); err != nil {
+	//	metrics.ClickHouseWriteErrorsTotal.WithLabelValues(eventType).Inc()
+	//	return fmt.Errorf("Consumer-Processor.process Save: %w", err)
+	//}
+	//dur2 := time.Since(start2)
 
-	log.Printf("processor: successful save")
+	//log.Printf("КОНСЬЮМЕР %d\n--------------------\nЧИТАЛ %v\nЗАПИСЫВАЛ В КЛИКХАУС %v\n---------------------\n", readerId, dur1, dur2)
 
 	return nil
 }

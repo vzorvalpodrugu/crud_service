@@ -36,7 +36,6 @@ func (p *Processor) Start(ctx context.Context) {
 	go func() {
 		log.Println("Outbox processor started")
 
-		counter := 0
 		ticker := time.NewTicker(p.pollInterval)
 		defer ticker.Stop()
 
@@ -47,21 +46,17 @@ func (p *Processor) Start(ctx context.Context) {
 				return
 			case <-ticker.C:
 				go func() {
-					//start := time.Now()
-					if err := p.process(ctx, counter); err != nil {
+					if err := p.process(ctx); err != nil {
 						log.Println("Outbox processor error: %v", err)
 					}
-					//dur := time.Since(start)
-					//log.Printf("ВРЕМЯ ВЫПОЛНЕНИЯ PROCESS ПОД НОМЕРОМ %d ЗАНЯЛО %v", counter, dur)
 				}()
-				counter++
 			}
 		}
 	}()
 }
 
 // Получает необработанные события и вызывает для них handleEvent и MarkSent, остальные помечает failed
-func (p *Processor) process(ctx context.Context, counter int) error {
+func (p *Processor) process(ctx context.Context) error {
 	events, err := p.outboxRepo.GetPending(ctx)
 	if err != nil {
 		return fmt.Errorf("processor.process GetPending: %w", err)

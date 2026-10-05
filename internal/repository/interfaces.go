@@ -43,5 +43,6 @@ type OutboxRepository interface {
 }
 
 type PostEventRepository interface {
-	Save(ctx context.Context, event *domain.PostEvent) (*domain.PostEvent, error)
+	SaveOne(ctx context.Context, event *domain.PostEvent) (*domain.PostEvent, error)
+	SaveBatch(ctx context.Context, events []*domain.PostEvent) error
 }

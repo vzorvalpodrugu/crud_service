@@ -17,7 +17,7 @@ func NewPostEventRepository(conn driver.Conn) PostEventRepository {
 	return &postEventRepository{conn: conn}
 }
 
-func (p *postEventRepository) Save(ctx context.Context, event *domain.PostEvent) (*domain.PostEvent, error) {
+func (p *postEventRepository) SaveOne(ctx context.Context, event *domain.PostEvent) (*domain.PostEvent, error) {
 	query := `
 		INSERT INTO analytics.posts_events(
 			event_id,   
@@ -48,4 +48,44 @@ func (p *postEventRepository) Save(ctx context.Context, event *domain.PostEvent)
 
 	return event, nil
 
+}
+
+func (p *postEventRepository) SaveBatch(ctx context.Context, events []*domain.PostEvent) error {
+	query := `
+		INSERT INTO analytics.posts_events(
+			event_id,   
+			event_type, 
+			post_id, 
+			post_name, 
+			post_text, 
+			post_author_id, 
+			post_created_at, 
+			post_updated_at,                                  
+		)
+	`
+	batch, err := p.conn.PrepareBatch(ctx, query)
+	if err != nil {
+		return fmt.Errorf("PostEventRepository.SaveBatch PrepareBatch: %w", err)
+	}
+
+	for id, row := range events {
+		if err := batch.Append(
+			row.EventId,
+			row.EventType,
+			row.PostId,
+			row.PostName,
+			row.PostText,
+			row.PostAuthorId,
+			row.PostCreatedAt,
+			row.PostUpdatedAt,
+		); err != nil {
+			return fmt.Errorf("PostEventRepository.SaveBatch row %d Append: %w", id, err)
+		}
+	}
+
+	if err := batch.Send(); err != nil {
+		return fmt.Errorf("PostEventRepository.SaveBatch Send: %w", err)
+	}
+
+	return nil
 }
