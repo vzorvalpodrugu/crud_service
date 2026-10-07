@@ -17,6 +17,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"crud_service/internal/config"
 	"crud_service/internal/db"
@@ -47,7 +48,17 @@ func main() {
 	}
 	defer pool.Close()
 
-	log.Println("successful connect to database")
+	log.Println("successful connect to postrges database")
+
+	//3.1 подключиться к кликхаусу
+	conn, err := db.NewConnect(cfg.ClickHouse)
+	if err != nil {
+		log.Println(err)
+	}
+
+	defer conn.Close()
+
+	log.Println("successful connect to clickhouse database")
 
 	//4.0 redis
 	redisClient, err := cache.NewRedisClient(ctx, cfg.Redis)
@@ -64,21 +75,34 @@ func main() {
 	defer kafkaProducer.Close()
 	log.Println("Kafka producer created")
 
+	kafkaConsumerGroup := kafka.NewConsumerGroup(cfg.Kafka.Brokers, 10)
+	defer kafkaConsumerGroup.Close()
+	log.Printf("Kafka consumer created")
+
 	//4 repositories
 	userRepo := repository.NewUserRepository(pool)
 	postRepo := repository.NewPostRepository(pool)
 	commentRepo := repository.NewCommentRepository(pool)
 	outboxRepo := repository.NewOutboxRepository(pool)
+	postEventRepo := repository.NewPostEventRepository(conn)
 
 	//outbox processor
-	processor := outbox.NewProcessor(outboxRepo, kafkaProducer)
+	outboxProcessor := outbox.NewProcessor(outboxRepo, kafkaProducer)
 
-	//context for processor
+	//consumer processor
+	consumerProcessor := kafka.NewProcessor(&kafkaConsumerGroup, postEventRepo)
+
+	//context for producer processor
 	processorCtx, cancelProcessor := context.WithCancel(context.Background())
 	defer cancelProcessor()
 
+	//context for consumer processor
+	consumerProcessorCtx, consumerCancel := context.WithCancel(context.Background())
+	defer consumerCancel()
+
 	//start processor
-	processor.Start(processorCtx)
+	outboxProcessor.Start(processorCtx)
+	consumerProcessor.Start(consumerProcessorCtx)
 
 	//5 services
 	userService := service.NewUserService(userRepo)
@@ -101,6 +125,9 @@ func main() {
 			"deleteComment": {middleware2.RolesMiddleware(userService)},
 		},
 	})
+
+	// /metrics
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	//api.RegisterHandlers(e, strictHandler)
 

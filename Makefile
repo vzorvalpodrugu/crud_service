@@ -8,7 +8,7 @@ help:
 
 ## up: поднять PostgreSQL
 up:
-	docker-compose up -d --force-recreate
+	docker compose up -d --force-recreate
 	@echo "Ждём готовности PostgreSQL..."
 	@until docker compose exec postgres pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; do sleep 1; done
 	@echo "PostgreSQL готов!"

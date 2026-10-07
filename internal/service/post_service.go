@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"crud_service/internal/domain"
 	"crud_service/internal/repository"
@@ -35,19 +36,24 @@ func (s *postService) Create(ctx context.Context, name, text string, author_id i
 		Text:      text,
 		Author_id: author_id,
 	}
+	tAll := time.Now()
 
 	//начало транзакции
+	tSer := time.Now()
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postService.Create — user not found: %w", err)
 	}
+	durSer := time.Since(tSer)
 	defer tx.Rollback(ctx)
 
+	tPR := time.Now()
 	//1. создаём пост внутри транзакции
 	created, err := s.postRepo.Create(ctx, tx, post)
 	if err != nil {
 		return nil, fmt.Errorf("postService.Create: %w", err)
 	}
+	durPR := time.Since(tPR)
 
 	//2. сериализуем пост в json
 	payload, err := json.Marshal(post)
@@ -55,6 +61,7 @@ func (s *postService) Create(ctx context.Context, name, text string, author_id i
 		return nil, fmt.Errorf("postService.Create marshal: %w", err)
 	}
 
+	tOB := time.Now()
 	//3.записываем событие в outbox
 	if err := s.outboxRepo.Create(ctx, tx, &domain.OutboxEvent{
 		EventType: domain.EventPostCreated,
@@ -62,16 +69,21 @@ func (s *postService) Create(ctx context.Context, name, text string, author_id i
 	}); err != nil {
 		return nil, fmt.Errorf("postService.Create outbox: %w", err)
 	}
+	durOB := time.Since(tOB)
 
+	tComm := time.Now()
 	//4.коммит транзакцию
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("postService.Create commit: %w", err)
 	}
+	durComm := time.Since(tComm)
 
 	//5. работа с кешем
 	if err = s.postCache.SetById(ctx, created); err != nil {
 		log.Println("PostService.Create SetById cache failed")
 	}
+	durAll := time.Since(tAll)
+	log.Printf("\nPost: %v\nOutbox: %v\nCommit: %v\nTRANSAC BEGIN: %v\nAll TIME: %v", durPR, durOB, durComm, durSer, durAll)
 	return created, nil
 }
 

@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -21,31 +20,35 @@ func NewProducer(brokers []string) *Producer {
 		Addr:         kafka.TCP(brokers...),
 		Balancer:     &kafka.LeastBytes{},
 		RequiredAcks: kafka.RequireOne,
-		Async:        false,
-		BatchTimeout: 10 * time.Millisecond,
+		Async:        true,
+		//BatchTimeout: 10 * time.Millisecond,
+		BatchSize: 100,
 	}
 
 	return &Producer{writer: writer}
 }
 
 type Message struct {
+	Topic     string
 	EventType string
 	Key       string
 	Value     []byte
 }
 
-func (p *Producer) Publish(ctx context.Context, topic string, msg Message) error {
-	err := p.writer.WriteMessages(ctx, kafka.Message{
-		Topic: topic,
-		Key:   []byte(msg.Key),
-		Value: msg.Value,
-		Headers: []kafka.Header{
-			{
-				Key:   "event_type",
-				Value: []byte(msg.EventType),
-			},
-		},
-	})
+func (p *Producer) Publish(ctx context.Context, msgs ...kafka.Message) error {
+	//err := p.writer.WriteMessages(ctx, kafka.Message{
+	//	Topic: topic,
+	//	Key:   []byte(msg.Key),
+	//	Value: msg.Value,
+	//	Headers: []kafka.Header{
+	//		{
+	//			Key:   "event_type",
+	//			Value: []byte(msg.EventType),
+	//		},
+	//	},
+	//})
+
+	err := p.writer.WriteMessages(ctx, msgs...)
 
 	if err != nil {
 		return fmt.Errorf("kafka.Producer.Publish: %w", err)
